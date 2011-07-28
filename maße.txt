@@ -1,0 +1,27 @@
+Maße:
+
+Motor:
+	Durchmesser:	37mm
+	Länge:			53,6mm ohne Achse, 74,6mm
+	Achsendurchmesser: 6mm
+
+Akku:
+	Länge:	14cm
+	Breite:	4,2cm
+	Höhe:	2,4cm
+
+Platine 1 (hinten):
+	Breite:	78mm
+	Länge:	100mm
+
+Platine 2 (vorne):
+	Breite:	50mm
+	Länge:	78mm
+
+Radvariante 1:
+	Durchmesser:	115mm
+	Breite:			20,7mm
+
+Radvariante 2:
+	Durchmesser:	116mm
+	Breite:			25,5mm
