@@ -20,11 +20,13 @@
 #define CAMREAD PA0
 #define CAMOUT 11
 
-#define CAMDELAY 2000 // in microseconds
+#define CAMDELAY 1 // in microseconds
 
-void camInit(uint8_t *regs);
-void camShoot(void);
-uint8_t camReady(void);
-uint8_t *camGetPicture(void);
+// To get debugging messages, define CAMDEBUG
+// Set print handler in cam.c
+
+uint8_t *camInit(uint8_t *regs);
+uint8_t *camShoot(void);
+void camReset(void);
 
 #endif

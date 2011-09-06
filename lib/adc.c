@@ -10,11 +10,17 @@
 #include <stdint.h>
 #include "include/adc.h"
 
-void adcInit(uint8_t channel) {
+void adcInit() {
 	PRR0 &= ~(1 << PRADC); // Disable ADC Power Reduction (Enable it...)
 	ADMUX = 0;
 	ADMUX |= (1 << REFS0) | (1 << ADLAR); // Ref: AVCC, left adjust result
-	if (channel > 15) {
+	ADCSRA |= (1 << ADEN) | (1 << ADSC); // Enable ADC
+	while (!adcReady());
+    adcGet();
+}
+
+void adcStart(uint8_t channel) {
+    if (channel > 15) {
 		channel = 0;
 	}
 	if (channel > 7) {
@@ -22,13 +28,11 @@ void adcInit(uint8_t channel) {
 		ADCSRB |= (1 << MUX5);
 	}
 	ADMUX |= channel;
-	ADCSRA |= (1 << ADEN) | (1 << ADSC); // Enable ADC
-	while (!adcReady());
-    adcGet();
+    ADCSRA |= (1 << ADSC);
 }
 
 uint8_t adcReady() {
-	if ((ADCSRA & (1 << ADIF)) != 0) {
+	if ((ADCSRA & (1 << ADSC)) != 0) {
 		return 1;
 	} else {
 		return 0;
@@ -37,7 +41,7 @@ uint8_t adcReady() {
 
 uint8_t adcGet() {
 	if (adcReady()) {
-		ADCSRA |= (1 << ADIF); // Clear flag
+		ADCSRA |= (1 << ADSC); // Clear flag
 		return ADCH;
 	} else {
 		return 0;
@@ -46,4 +50,5 @@ uint8_t adcGet() {
 
 void adcClose() {
 	ADCSRA &= ~(1 << ADSC);
+    PRR0 |= (1 << PRADC);
 }

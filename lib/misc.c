@@ -13,7 +13,7 @@
 #include "include/twi.h"
 #include "include/serial.h"
 
-char hexString[3];
+char string[4];
 
 void ledInit() {
 	DDRA |= (1 << DDA7) | (1 << DDA6);
@@ -174,22 +174,27 @@ uint8_t serialGetLine(uint8_t block) {
 }
 
 char *byteToString(uint8_t byte) {
-    hexString[2] = '\0';
-    hexString[1] = byte % 16;
-    byte /= 16;
-    hexString[0] = byte;
-    if (hexString[1] < 10) {
-        hexString[1] += '0';
+    if (byte < 10) {
+        string[0] = byte % 10;
+        string[0] += '0';
+        string[1] = '\0';
+        return string;
+    } else if (byte < 100) {
+        string[0] = byte / 10;
+        string[1] = byte % 10;
+        string[0] += '0';
+        string[1] += '0';
+        string[2] = '\0';
+        return string;
     } else {
-        hexString[1] -= 10;
-        hexString[1] += 'A';
+        string[0] = byte / 100;
+        string[1] = byte / 10;
+        string[2] = byte % 10;
+        string[0] += '0';
+        string[1] += '0';
+        string[2] += '0';
+        string[3] = '\0';
+        return string;
     }
-    if (hexString[2] < 10) {
-        hexString[2] += '0';
-    } else {
-        hexString[2] -= 10;
-        hexString[2] += 'A';
-    }
-    return hexString;
 }
 

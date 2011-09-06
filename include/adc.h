@@ -9,7 +9,9 @@
 #ifndef ADC_H_
 #define ADC_H_
 
-void adcInit(uint8_t channel);
+void adcInit(void);
+
+void adcStart(uint8_t channel);
 
 // Check if conversion is already finished (0 = No; 1 = Yes)
 uint8_t adcReady(void);

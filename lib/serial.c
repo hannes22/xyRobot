@@ -11,30 +11,30 @@
 
 #include "include/serial.h"
 
-uint8_t rxBuffer[RX_BUFFER_SIZE];
-uint8_t txBuffer[TX_BUFFER_SIZE];
-uint16_t rxHead = 0;
-uint16_t rxTail = 0;
-uint16_t txHead = 0;
-uint16_t txTail = 0;
-uint8_t shouldStartTransmission = 0;
+uint8_t volatile rxBuffer[RX_BUFFER_SIZE];
+uint8_t volatile txBuffer[TX_BUFFER_SIZE];
+uint16_t volatile rxRead = 0;
+uint16_t volatile rxWrite = 0;
+uint16_t volatile txRead = 0;
+uint16_t volatile txWrite = 0;
+uint8_t volatile shouldStartTransmission = 0;
 
 ISR(USART0_RX_vect) { // Receive complete
-	rxBuffer[rxTail] = UDR0;
-	if (rxTail < (RX_BUFFER_SIZE - 1)) {
-		rxTail++;
+    rxBuffer[rxWrite] = UDR0;
+	if (rxWrite < (RX_BUFFER_SIZE - 1)) {
+		rxWrite++;
 	} else {
-		rxTail = 0;
+		rxWrite = 0;
 	}
 }
 
 ISR(USART0_UDRE_vect) { // Data register empty
-	if (txHead != txTail) {
-		UDR0 = txBuffer[txHead];
-		if (txHead < (TX_BUFFER_SIZE -1)) {
-			txHead++;
+    if (txRead != txWrite) {
+		UDR0 = txBuffer[txRead];
+		if (txRead < (TX_BUFFER_SIZE -1)) {
+			txRead++;
 		} else {
-			txHead = 0;
+			txRead = 0;
 		}
 	} else {
 		shouldStartTransmission = 1;
@@ -74,13 +74,13 @@ uint8_t serialInit(uint16_t baud, uint8_t databits, uint8_t parity, uint8_t stop
 		}
 	}
 	UBRR0 = baud;
-	UCSR0B |= (1 << RXCIE0) | (1 << UDRIE0) | (1 << RXEN0) | (1 << TXEN0); // Enable Interrupts and Receiver/Transmitter
+	UCSR0B |= (1 << RXCIE0) | (1 << RXEN0) | (1 << TXEN0); // Enable Interrupts and Receiver/Transmitter
 
 	return 0;
 }
 
 uint8_t serialHasChar() {
-	if (rxHead != rxTail) {
+	if (rxRead != rxWrite) {
 		return 1;
 	} else {
 		return 0;
@@ -89,13 +89,13 @@ uint8_t serialHasChar() {
 
 uint8_t serialGet() {
 	uint8_t c;
-	if (rxHead != rxTail) {
-		c = rxBuffer[rxHead];
-		rxBuffer[rxHead] = 0;
-		if (rxHead < (RX_BUFFER_SIZE - 1)) {
-			rxHead++;
+	if (rxRead != rxWrite) {
+		c = rxBuffer[rxRead];
+		rxBuffer[rxRead] = 0;
+		if (rxRead < (RX_BUFFER_SIZE - 1)) {
+			rxRead++;
 		} else {
-			rxHead = 0;
+			rxRead = 0;
 		}
 		return c;
 	} else {
@@ -104,11 +104,12 @@ uint8_t serialGet() {
 }
 
 void serialWrite(uint8_t data) {
-	txBuffer[txTail] = data;
-	if (txTail < (TX_BUFFER_SIZE - 1)) {
-		txTail++;
+	while (((txWrite + 1) == txRead) || ((txRead == 0) && ((txWrite + 1) == TX_BUFFER_SIZE))); // Buffer is full, wait!
+    txBuffer[txWrite] = data;
+	if (txWrite < (TX_BUFFER_SIZE - 1)) {
+		txWrite++;
 	} else {
-		txTail = 0;
+		txWrite = 0;
 	}
 	if (shouldStartTransmission == 1) {
 		shouldStartTransmission = 0;
@@ -126,8 +127,8 @@ void serialClose() {
 	UCSR0B = 0;
 	UCSR0C = 0;
 	UBRR0 = 0;
-	rxHead = 0;
-	txHead = 0;
-	rxTail = 0;
-	txTail = 0;
+	rxRead = 0;
+	txRead = 0;
+	rxWrite = 0;
+	txWrite = 0;
 }

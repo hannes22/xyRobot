@@ -5,7 +5,7 @@
  *      Author: thomas
  */
 
-#define puts(x) serialWriteString(x)
+#define puts(x) lcdPutString(x)
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,45 +18,50 @@
 #include "include/misc.h"
 #include "include/motor.h"
 #include "include/cam.h"
+#include "include/adc.h"
 
 int main(void) {
 
-	uint16_t i, j = 0;
+	uint16_t i;
 
     uint8_t *pic;
-    
-    uint8_t camConf[8] = { 0, 0, 90, 1, 0, 1, 2, 128 };
+    uint8_t c;
+    uint8_t camConf[8] = { 0x0E, 0x06, 0x00, 0x01, 0x00, 0x01, 0x07, 0x80 };
     
 	twiInit();
 	ledInit();
 	serialInit(51, 8, NONE, 1);
-	motorInit();
+	// motorInit();
+    adcInit();
     
 	sei();
     
-    puts("Initializing Camera...\n");
-    camInit(camConf);
-    puts("Initialized!\n");
-    
-while(1) {
-    puts("Shooting Picture...\n");
-    camShoot();
-    puts("Waiting for Camera...\n");
-    while (camReady() == 0);
-    puts("Getting Picture...\n");
-    pic = camGetPicture();
-    puts("Here it goes:\n");
+    _delay_ms(2000);
+    pic = camInit(camConf);
     for (i = 0; i < 16384; i++) {
-        serialWriteString("0x");
-        serialWriteString(byteToString(pic[i]));
-        serialWrite(' ');
-        if (++j >= 5) {
-            j = 0;
-            serialWrite('\n');
-            _delay_ms(100);
-        }
+        lcdPutChar(pic[i]);
+        _delay_ms(10);
     }
-    _delay_ms(10000);
-}
+    free(pic);
+    
+	while(1) {
+        if (serialHasChar()) {
+            c = serialGet();
+            
+            if (c == 'c') {
+                pic = camInit(camConf);
+                for (i = 0; i < 16384; i++) {
+                    serialWrite(pic[i]);
+                }
+                free(pic);
+            }
+            
+            if (c == '?') {
+                serialWriteString("xyRobot BETA\n");
+            }
+        }
+        
+	}
+
 	return 0;
 }

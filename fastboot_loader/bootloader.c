@@ -173,12 +173,12 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (!silent) {
-		printf("COM dev  : %s\n", device);
-		printf("Baudrate : %i\n", baud);
-		if (*reboot_chars) printf ("Reboot   : %s\n",argv[reboot_arg]);
-		if (ntries) printf  ("Attempts : %d\n",ntries);
-		printf("%s: %s\n", (verify == 1 ? "Verify   " : "Program  "), hexfile);
-		printf("-------------------------------------------------\n");
+		// printf("COM dev  : %s\n", device);
+		// printf("Baudrate : %i\n", baud);
+		// if (*reboot_chars) printf ("Reboot   : %s\n",argv[reboot_arg]);
+		// if (ntries) printf  ("Attempts : %d\n",ntries);
+		// printf("%s: %s\n", (verify == 1 ? "Verify   " : "Program  "), hexfile);
+		// printf("-------------------------------------------------\n");
 	}
 
 	connect_device();
@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
 	if (!silent) printf("Elapsed time: %.3f seconds\n", elapsed_secs (&t_start));
 #endif
 
-	if (!silent) printf("...starting application\n\n");
+	if (!silent) printf("...starting application\n");
 	sendcommand(START);//start application
 	sendcommand(START);
 
@@ -487,16 +487,16 @@ int sscanhex(char *str, unsigned int *hexout, int n) {
  */
 void usage() {
 	fprintf(stderr,"./bootloader [-d /dev/ttyS0] [-b 9600] [-r '\\n\\nRESET\\n'] [-s] [-a 100] -[v|p] file.hex\n");
-	fprintf(stderr,"-d Device\n");
-	fprintf(stderr,"-b Baudrate\n");
-	fprintf(stderr,"-v Verify\n");
-	fprintf(stderr,"-p Program\n");
-	fprintf(stderr,"-r Character sequence to reboot AVR (with std. C escape codes)\n");
-	fprintf(stderr,"-s Silent run - exits 0 on success, -1 on failure, errors to stderr\n");
-	fprintf(stderr,"-a Number of AVR bootloader connection attempts (def.: 0 = infinite)\n");
-	fprintf(stderr,"\n");
-	fprintf(stderr,"Author: Andreas Butti (andreasbutti at bluewin dot ch)\n");
-	fprintf(stderr,"Modified by: Ilya Goldberg (igg at cathilya dot org\n");
+	// fprintf(stderr,"-d Device\n");
+	// fprintf(stderr,"-b Baudrate\n");
+	// fprintf(stderr,"-v Verify\n");
+	// fprintf(stderr,"-p Program\n");
+	// fprintf(stderr,"-r Character sequence to reboot AVR (with std. C escape codes)\n");
+	// fprintf(stderr,"-s Silent run - exits 0 on success, -1 on failure, errors to stderr\n");
+	// fprintf(stderr,"-a Number of AVR bootloader connection attempts (def.: 0 = infinite)\n");
+	// fprintf(stderr,"\n");
+	// fprintf(stderr,"Author: Andreas Butti (andreasbutti at bluewin dot ch)\n");
+	// fprintf(stderr,"Modified by: Ilya Goldberg (igg at cathilya dot org\n");
 
 	exit(-1);
 }

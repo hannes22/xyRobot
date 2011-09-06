@@ -8,7 +8,7 @@
 #ifndef UART_H_
 #define UART_H_
 
-// RX & TX buffer size in bytes (power of 2)
+// RX & TX buffer size in bytes
 #define RX_BUFFER_SIZE 512
 #define TX_BUFFER_SIZE 512
 
