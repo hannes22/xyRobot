@@ -10,18 +10,20 @@
 		E9356B2213E1B340002B3EDF /* adc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = adc.h; sourceTree = "<group>"; };
 		E9356B2313E1B340002B3EDF /* cam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cam.h; sourceTree = "<group>"; };
 		E9356B2413E1B340002B3EDF /* misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = "<group>"; };
-		E9356B2513E1B340002B3EDF /* motor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = motor.h; sourceTree = "<group>"; };
+		E9356B2513E1B340002B3EDF /* motor_low.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = motor_low.h; sourceTree = "<group>"; };
 		E9356B2613E1B340002B3EDF /* serial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serial.h; sourceTree = "<group>"; };
 		E9356B2713E1B340002B3EDF /* twi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = twi.h; sourceTree = "<group>"; };
 		E9356B2913E1B340002B3EDF /* adc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = adc.c; sourceTree = "<group>"; };
 		E9356B2A13E1B340002B3EDF /* cam.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cam.c; sourceTree = "<group>"; };
 		E9356B2B13E1B340002B3EDF /* misc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = misc.c; sourceTree = "<group>"; };
-		E9356B2C13E1B340002B3EDF /* motor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = motor.c; sourceTree = "<group>"; };
+		E9356B2C13E1B340002B3EDF /* motor_low.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = motor_low.c; sourceTree = "<group>"; };
 		E9356B2D13E1B340002B3EDF /* serial.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = serial.c; sourceTree = "<group>"; };
 		E9356B2E13E1B340002B3EDF /* twi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = twi.c; sourceTree = "<group>"; };
 		E9356B2F13E1B340002B3EDF /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		E9356B3013E1B352002B3EDF /* snippets.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = snippets.c; sourceTree = "<group>"; };
 		E9356B3113E1B359002B3EDF /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		E96E5EDF1457221A0086E120 /* menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = menu.c; sourceTree = "<group>"; };
+		E9D9321F1451BAD200C55C1B /* motor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = motor.h; sourceTree = "<group>"; };
+		E9D932201451BAE800C55C1B /* motor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = motor.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -31,7 +33,8 @@
 				E9356B2213E1B340002B3EDF /* adc.h */,
 				E9356B2313E1B340002B3EDF /* cam.h */,
 				E9356B2413E1B340002B3EDF /* misc.h */,
-				E9356B2513E1B340002B3EDF /* motor.h */,
+				E9356B2513E1B340002B3EDF /* motor_low.h */,
+				E9D9321F1451BAD200C55C1B /* motor.h */,
 				E9356B2613E1B340002B3EDF /* serial.h */,
 				E9356B2713E1B340002B3EDF /* twi.h */,
 			);
@@ -41,10 +44,12 @@
 		E9356B2813E1B340002B3EDF /* lib */ = {
 			isa = PBXGroup;
 			children = (
+				E96E5EDF1457221A0086E120 /* menu.c */,
 				E9356B2913E1B340002B3EDF /* adc.c */,
 				E9356B2A13E1B340002B3EDF /* cam.c */,
 				E9356B2B13E1B340002B3EDF /* misc.c */,
-				E9356B2C13E1B340002B3EDF /* motor.c */,
+				E9356B2C13E1B340002B3EDF /* motor_low.c */,
+				E9D932201451BAE800C55C1B /* motor.c */,
 				E9356B2D13E1B340002B3EDF /* serial.c */,
 				E9356B2E13E1B340002B3EDF /* twi.c */,
 			);
@@ -55,7 +60,6 @@
 			isa = PBXGroup;
 			children = (
 				E9356B3113E1B359002B3EDF /* makefile */,
-				E9356B3013E1B352002B3EDF /* snippets.c */,
 				E9356B2113E1B340002B3EDF /* include */,
 				E9356B2813E1B340002B3EDF /* lib */,
 				E9356B2F13E1B340002B3EDF /* main.c */,

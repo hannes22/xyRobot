@@ -36,12 +36,14 @@ TARGET = main
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(TARGET).c
+SRC += lib/menu.c
 SRC += lib/misc.c
-SRC += lib/motor.c
+SRC += lib/motor_low.c
 SRC += lib/serial.c
 SRC += lib/twi.c
 SRC += lib/adc.c
 SRC += lib/cam.c
+SRC += lib/motor.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -200,11 +202,8 @@ BOOTLOADER = $(BOOTLOADERPATH) -d /dev/tty.SerialAdapter-DevB -b 19200 -a 0 -p
 # ---------------------------------------------------------------------------
 
 # Define directories, if needed.
-DIRAVR = /usr/local/CrossPack-AVR
+DIRAVR = /usr/local/Crosspack-AVR
 DIRAVRBIN = $(DIRAVR)/bin
-DIRAVRUTILS = $(DIRAVR)/bin
-DIRINC = .
-DIRLIB = $(DIRAVR)/lib
 
 
 # Define programs and commands.

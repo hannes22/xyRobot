@@ -1,21 +1,49 @@
 /*
  * motor.h
  *
- *  Created on: 17.07.2011
- *      Author: thomas
+ * Copyright 2011 Thomas Buck <xythobuz@me.com>
+ *
+ * This file is part of xyRobot.
+ *
+ * xyRobot is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * xyRobot is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MOTOR_H_
-#define MOTOR_H_
+#ifndef motor_h
+#define motor_h
 
 #define FORWARD 1
 #define BACKWARD 2
-#define TURNRIGHT 3
-#define TURNLEFT 4
+#define RIGHT 3
+#define LEFT 4
 
-void motorInit(void);
-void motorSpeed(uint8_t left, uint8_t right);
-void motorStop(void);
-void motorDirection(uint8_t dir);
+#define TURNSPEED 128
 
-#endif /* MOTOR_H_ */
+// define one, not both
+#define CMPERTICK 1
+// #define TICKSPERCM 1
+
+// distance between wheels in cm
+#define WHEELDISTANCE 20
+
+void driveInit(void);
+
+// dir = FORWARD or BACKWARD
+void drive(uint16_t cm, uint8_t speed, uint8_t dir);
+
+// dir = RIGHT or LEFT
+void turn(uint16_t degree, uint8_t dir);
+
+uint8_t driveDone(void);
+
+#endif

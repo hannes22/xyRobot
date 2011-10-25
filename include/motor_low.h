@@ -1,5 +1,5 @@
 /*
- * main.c
+ * motor_low.h
  *
  * Copyright 2011 Thomas Buck <xythobuz@me.com>
  *
@@ -19,38 +19,19 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define puts(x) lcdPutString(x)
+#ifndef MOTOR_LOW_H_
+#define MOTOR_LOW_H_
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <avr/io.h>
+#define FORWARD 1
+#define BACKWARD 2
+#define TURNRIGHT 3
+#define TURNLEFT 4
 
-#include "include/twi.h"
-#include "include/serial.h"
-#include "include/motor.h"
-#include "include/misc.h"
-#include "include/adc.h"
-#include "include/cam.h"
+void motorInit(void);
+void motorSpeed(uint8_t left, uint8_t right);
+void motorStop(void);
+void motorDirection(uint8_t dir);
+void motorTicks(uint16_t left, uint16_t right);
+uint8_t motorDone(void);
 
-void menu(void);
-
-int main(void) {
-
-	twiInit();
-	ledInit();
-	serialInit(51, 8, NONE, 1);
-	driveInit();
-    adcInit();
-    
-	sei();
-    
-    menu();
-    
-	while(1) {
-        lcdPutString("\nRESET ME!");
-	}
-
-	return 0;
-}
+#endif /* MOTOR_LOW_H_ */

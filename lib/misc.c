@@ -1,13 +1,28 @@
 /*
  * misc.c
  *
- *  Created on: 12.07.2011
- *      Author: thomas
+ * Copyright 2011 Thomas Buck <xythobuz@me.com>
+ *
+ * This file is part of xyRobot.
+ *
+ * xyRobot is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * xyRobot is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
+#include <util/delay.h>
 
 #include "include/misc.h"
 #include "include/twi.h"
@@ -16,10 +31,21 @@
 char string[4];
 
 void ledInit() {
-	DDRA |= (1 << DDA7) | (1 << DDA6);
+	int i;
+    
+    DDRA |= (1 << DDA7) | (1 << DDA6);
 	DDRB |= (1 << DDB4);
 	PORTA |= (1 << PA7) | (1 << PA6);
 	PORTB |= (1 << PB4);
+    
+    for (i = 0; i < 4; i++) {
+        ledToggle(0);
+        ledToggle(1);
+        ledToggle(2);
+        if (i != 3) {
+            _delay_ms(333);
+        }
+    }
 }
 
 void ledToggle(uint8_t id) {
@@ -130,47 +156,6 @@ uint16_t lcdGetNum(void) {
 			break;
 	}
 	return ret;
-}
-
-uint8_t serialGetLine(uint8_t block) {
-	uint16_t i = 0;
-	uint8_t c = 0;
-	uint8_t bedingung = 1;
-	while (bedingung) {
-		if (block == 0) {
-			bedingung = serialHasChar();
-			block = 2;
-			if (bedingung == 0) {
-				return 3;
-			}
-		}
-		if (serialHasChar()) {
-			c = serialGet();
-		} else {
-			if (block == 2) {
-				return 3;
-			} else {
-				continue;
-			}
-		}
-		if (i >= LINE_BUFFER_LENGTH) {
-			lineBuffer[LINE_BUFFER_LENGTH - 1] = '\0';
-			return 1;
-		}
-		if (c == '\n') {
-			lineBuffer[i] = '\0';
-			return 0;
-		}
-		lineBuffer[i] = c;
-		i++;
-	}
-	if (i >= LINE_BUFFER_LENGTH) {
-		lineBuffer[LINE_BUFFER_LENGTH - 1] = '\0';
-		return 2;
-	} else {
-		lineBuffer[i] = '\0';
-	}
-	return 0;
 }
 
 char *byteToString(uint8_t byte) {
