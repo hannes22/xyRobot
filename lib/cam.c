@@ -178,7 +178,6 @@ void camInit(uint8_t *regs) {
 
 void camShoot(void) {
 	// Start shooting a picture
-    uint16_t i;
     if (camInitialized == 0) {
         camInit(NULL);
     }
