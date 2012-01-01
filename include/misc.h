@@ -40,5 +40,6 @@ uint16_t lcdGetNum(void);
 // don't free returned string...
 char *byteToString(uint8_t byte);
 char *bytesToString(uint16_t bytes);
+char *byteToHex(uint8_t byte);
 
 #endif /* MISC_H_ */

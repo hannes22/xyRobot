@@ -38,8 +38,9 @@
 // To get debugging messages, define CAMDEBUG
 // Set print handler in cam.c
 
-uint8_t *camInit(uint8_t *regs);
-uint8_t *camShoot(void);
+void camInit(uint8_t *regs);
+void camShoot(void);
+uint8_t camGetByte(void);
 void camReset(void);
 
 #endif

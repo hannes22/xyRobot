@@ -28,7 +28,7 @@
 #include <twi.h>
 #include <serial.h>
 
-char string[6];
+char string[8];
 
 // First bit: Background light status
 uint8_t lcdStatus;
@@ -130,12 +130,9 @@ void lcdPutChar(char c) {
 	twiStartWait(LCD_ADDRESS+I2C_WRITE);
 	twiWrite(c);
 	twiStop();
-	_delay_ms(1);
 }
 
 void lcdPutString(char* data) {
-	// Research suggested that we need to wait 100 ms between strings...
-	// So we wait 100 ms in this routine...
 	twiStartWait(LCD_ADDRESS+I2C_WRITE);
 	while(*data != '\0') {
 		if (*data != '\r') {
@@ -151,7 +148,6 @@ void lcdPutString(char* data) {
 		}
 	}
 	twiStop();
-	_delay_ms(200);
 }
 
 uint8_t lcdGetChar(void) {
@@ -212,5 +208,13 @@ char *bytesToString(uint16_t bytes) {
 	}
 
 	string[i] = '\0';
+	return string;
+}
+
+char *byteToHex(uint8_t byte) {
+	uint8_t helper[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	string[0] = helper[(byte & 0xF0) >> 4];
+	string[1] = helper[byte & 0x0F];
+	string[2] = '\0';
 	return string;
 }

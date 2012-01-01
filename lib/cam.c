@@ -26,6 +26,7 @@
 
 #include <adc.h>
 #include <cam.h>
+#include <misc.h>
 
 #define DEBUGPUTS(x) lcdPutString(x)
 
@@ -115,10 +116,8 @@ void camWait(void) {
     }
 }
 
-uint8_t *camInit(uint8_t *regs) {
+void camInit(uint8_t *regs) {
 	// Initialize camera with given settings register (8 byte array)
-	// Takes a picture, too, returns it
-    uint8_t *pic;
     uint16_t i;
     
     CAMDDR |= (1 << CAMSTART) | (1 << CAMDATA) | (1 << CAMLOAD) | (1 << CAMRESET) | (1 << CAMCLOCK);
@@ -165,52 +164,51 @@ uint8_t *camInit(uint8_t *regs) {
     DEBUGPUTS("waited\n");
 #endif
     
-    pic = (uint8_t *)malloc(128*128);
     for (i = 0; i < (128*128); i++) {
         setClock(1);
-        adcStart(CAMOUT);
         _delay_us(CAMDELAY);
-        pic[i] = adcGet();
         setClock(0);
         _delay_us(CAMDELAY);
     }
-    
+
 #ifdef CAMDEBUG
     DEBUGPUTS("return\n");
 #endif
-    
-    return pic;
 }
 
-uint8_t *camShoot(void) {
-	// Shoot a picture, return it
-	// Needs some time...
-    uint8_t *pic;
+void camShoot(void) {
+	// Start shooting a picture
     uint16_t i;
     if (camInitialized == 0) {
-        return camInit(NULL);
-    } else {
-        camStart();
-        camWait();
-        pic = (uint8_t *)malloc(128*128);
-        adcStart(CAMOUT);
-        for (i = 0; i < (128*128); i++) {
-            while (adcReady() == 0);
-            pic[i] = adcGet();
-            setClock(1);
-            _delay_us(CAMDELAY);
-            setClock(0);
-            while ((CAMPIN & (1 << CAMREAD)) != 0) {
-                setClock(1);
-                setClock(0);
-            }
-        }
-        return pic;
+        camInit(NULL);
     }
+    camStart();
+    camWait();
+    adcStart(CAMOUT);
+}
+
+uint8_t camGetByte(void) {
+	// Get one byte of the picture shot.
+	// Shoots a picture if not already done
+	uint8_t result;
+	if (camInitialized == 0) {
+		camShoot();
+	}
+	while(adcReady() == 0);
+	result = adcGet();
+	setClock(1);
+	_delay_us(CAMDELAY);
+	setClock(0);
+	while ((CAMPIN & (1 << CAMREAD)) != 0) {
+	    setClock(1);
+	    setClock(0);
+	}
+	return result;
 }
 
 void camReset(void) {
 	// Reset camera, so you can load other settings
     camInitialized = 0;
     reset();
+    adcClose();
 }
