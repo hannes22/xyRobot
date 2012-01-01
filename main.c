@@ -27,29 +27,33 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "include/twi.h"
-#include "include/serial.h"
-#include "include/motor.h"
-#include "include/misc.h"
-#include "include/adc.h"
-#include "include/cam.h"
+#include <twi.h>
+#include <serial.h>
+#include <motor.h>
+#include <misc.h>
+#include <adc.h>
+#include <cam.h>
 
 void menu(void);
 
+// Remember: Strings to the lcd should not end with \n
+
 int main(void) {
 
-	twiInit();
 	ledInit();
+	ledFlash();
 	serialInit(51, 8, NONE, 1);
+	twiInit();
 	driveInit();
     adcInit();
+    lcdInit();
     
 	sei();
-    
+
     menu();
     
 	while(1) {
-        lcdPutString("\nRESET ME!");
+        puts("\nRESET ME!");
 	}
 
 	return 0;

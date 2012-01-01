@@ -21,9 +21,10 @@
 
 #include <avr/io.h>
 #include <stdint.h>
-#include "include/adc.h"
+#include <adc.h>
 
 void adcInit() {
+	// Enable ADC Module, start one conversion, wait for finish
 	PRR0 &= ~(1 << PRADC); // Disable ADC Power Reduction (Enable it...)
 	ADMUX = 0;
 	ADMUX |= (1 << REFS0) | (1 << ADLAR); // Ref: AVCC, left adjust result
@@ -33,6 +34,7 @@ void adcInit() {
 }
 
 void adcStart(uint8_t channel) {
+	// Start a measurement on channel
     if (channel > 15) {
 		channel = 0;
 	}
@@ -45,6 +47,7 @@ void adcStart(uint8_t channel) {
 }
 
 uint8_t adcReady() {
+	// Is the measurement finished
 	if ((ADCSRA & (1 << ADSC)) != 0) {
 		return 1;
 	} else {
@@ -53,6 +56,7 @@ uint8_t adcReady() {
 }
 
 uint8_t adcGet() {
+	// Return measurements result
 	if (adcReady()) {
 		ADCSRA |= (1 << ADSC); // Clear flag
 		return ADCH;
@@ -62,6 +66,7 @@ uint8_t adcGet() {
 }
 
 void adcClose() {
+	// deactivate adc
 	ADCSRA &= ~(1 << ADSC);
     PRR0 |= (1 << PRADC);
 }

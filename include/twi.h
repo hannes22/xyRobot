@@ -7,8 +7,8 @@
 * Usage:    API compatible with I2C Software Library i2cmaster.h
 **************************************************************************/
 
-#ifndef TWI_H_
-#define TWI_H_
+#ifndef twi_h_
+#define twi_h_
 
 #define I2C_READ    1
 #define I2C_WRITE   0

@@ -19,8 +19,8 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MOTOR_LOW_H_
-#define MOTOR_LOW_H_
+#ifndef motor_low_h_
+#define motor_low_h_
 
 #define FORWARD 1
 #define BACKWARD 2

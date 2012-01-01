@@ -23,7 +23,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
-#include "include/serial.h"
+#include <serial.h>
 
 uint8_t volatile rxBuffer[RX_BUFFER_SIZE];
 uint8_t volatile txBuffer[TX_BUFFER_SIZE];

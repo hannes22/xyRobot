@@ -19,8 +19,8 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ADC_H_
-#define ADC_H_
+#ifndef adc_h_
+#define adc_h_
 
 void adcInit(void);
 

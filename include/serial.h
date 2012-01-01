@@ -19,8 +19,8 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERIAL_H_
-#define SERIAL_H_
+#ifndef serial_h_
+#define serial_h_
 
 // RX & TX buffer size in bytes
 #define RX_BUFFER_SIZE 512

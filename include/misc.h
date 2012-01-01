@@ -19,15 +19,19 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MISC_H_
-#define MISC_H_
+#ifndef misc_h_
+#define misc_h_
 
-#define LCD_ADDRESS 0x66
+#define LCD_ADDRESS 0x42
 
 void ledInit(void);
 void ledToggle(uint8_t id);
 void ledSet(uint8_t id, uint8_t val);
+void ledFlash(void);
 
+void lcdInit(void);
+void lcdSetBackgroundLight(uint8_t status);
+void lcdFlashBackgroundLight(void);
 void lcdPutChar(char c);
 void lcdPutString(char* s);
 uint8_t lcdGetChar(void);
@@ -35,5 +39,6 @@ uint16_t lcdGetNum(void);
 
 // don't free returned string...
 char *byteToString(uint8_t byte);
+char *bytesToString(uint16_t bytes);
 
 #endif /* MISC_H_ */

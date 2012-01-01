@@ -24,8 +24,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#include "include/adc.h"
-#include "include/cam.h"
+#include <adc.h>
+#include <cam.h>
 
 #define DEBUGPUTS(x) lcdPutString(x)
 
@@ -116,6 +116,8 @@ void camWait(void) {
 }
 
 uint8_t *camInit(uint8_t *regs) {
+	// Initialize camera with given settings register (8 byte array)
+	// Takes a picture, too, returns it
     uint8_t *pic;
     uint16_t i;
     
@@ -157,10 +159,6 @@ uint8_t *camInit(uint8_t *regs) {
     DEBUGPUTS("cam started\n");
 #endif
     
-#ifdef CAMDEBUG
-    DEBUGPUTS("waiting\n");
-#endif
-    
     camWait();
     
 #ifdef CAMDEBUG
@@ -185,6 +183,8 @@ uint8_t *camInit(uint8_t *regs) {
 }
 
 uint8_t *camShoot(void) {
+	// Shoot a picture, return it
+	// Needs some time...
     uint8_t *pic;
     uint16_t i;
     if (camInitialized == 0) {
@@ -210,6 +210,7 @@ uint8_t *camShoot(void) {
 }
 
 void camReset(void) {
+	// Reset camera, so you can load other settings
     camInitialized = 0;
     reset();
 }

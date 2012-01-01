@@ -21,12 +21,18 @@
 
 #include <stdint.h>
 
-#include "motor.h"
-#include "motor_low.h"
+#include <motor.h>
+#include <motor_low.h>
 
 #ifdef CMPERTICK
 #ifdef TICKSPERCM
-#error "DEFINE ONLY ONE CONSTANT!"
+#error "motor.c:Define only one constant"
+#endif
+#endif
+
+#ifndef CMPERTICK
+#ifndef TICKSPERCM
+#error "motor.c:Define CMPERTICK or TICKSPERCM"
 #endif
 #endif
 
@@ -35,13 +41,15 @@ void driveInit() {
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {
+
 #ifdef CMPERTICK
     uint16_t ticks = cm / CMPERTICK;
     if (cm % CMPERTICK != 0) {
         ticks++;
     }
     motorTicks(ticks, ticks);
-#else
+#endif
+#ifdef TICKSPERCM
     motorTicks((cm * TICKSPERCM), (cm * TICKSPERCM));
 #endif
     
@@ -55,11 +63,8 @@ void turn(uint16_t degree, uint8_t dir) {
         degree -= 360;
     }
     if (degree != 0) {
-        cm = 3 * WHEELDISTANCE * degree; // pi * d * (deg/360) = distance to drive
+        cm = 3 * WHEELDISTANCE * degree; // pi * d * deg/360 = distance to drive
         cm = cm / 360;
-        if ((cm % 360) != 0) {
-            cm++; // If rounding error, we turn more than needed
-        }
     }
     
     drive(cm, TURNSPEED, dir);

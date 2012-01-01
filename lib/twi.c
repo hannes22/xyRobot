@@ -13,7 +13,7 @@
 
 #include <compat/twi.h>
 
-#include "include/twi.h"
+#include <twi.h>
 
 /* define CPU frequency in Mhz here if not defined in Makefile */
 #ifndef F_CPU

@@ -18,13 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <avr/io.h>
 #include <stdint.h>
 #include <util/atomic.h>
 #include <avr/interrupt.h>
 
-#include "include/motor_low.h"
+#include <motor_low.h>
+#include <misc.h>
 
 volatile uint8_t dirGlobal = FORWARD; // Motor Direction
 volatile uint8_t speedRight = 0;
@@ -62,6 +62,7 @@ void motorInit() {
 	EICRB |= (1 << ISC61) | (1 << ISC60) | (1 << ISC71) | (1 << ISC70); // Rising Edge...
 	EIMSK |= (1 << INT7) | (1 << INT6); // ...activates Interrupts
 
+	ledInit();
 }
 
 // Adjust motor speed directly in the timer registers.
@@ -126,6 +127,7 @@ ISR(INT6_vect) { // Right Encoder
         if (remainRight == 0) {
             speedRight = 0;
             motorSpeed(speedLeft, 0);
+            ledSet(1, 0);
         }
     }
 	calcDiff();
@@ -142,6 +144,7 @@ ISR(INT7_vect) { // Left Encoder
         if (remainLeft == 0) {
             speedLeft = 0;
             motorSpeed(0, speedRight);
+            ledSet(0, 0);
         }
     }
 }
@@ -155,6 +158,16 @@ void motorSpeed(uint8_t left, uint8_t right) {
 		countRight = 0;
 		countLeft = 0;
 	}
+	if (left != 0) {
+		ledSet(0, 1);
+	} else {
+		ledSet(0, 0);
+	}
+	if (right != 0) {
+		ledSet(1, 1);
+	} else {
+		ledSet(1, 0);
+	}
 }
 
 void motorStop() {
@@ -166,6 +179,8 @@ void motorStop() {
 		countRight = 0;
 		countLeft = 0;
 	}
+	ledSet(0, 0);
+	ledSet(1, 0);
 }
 
 void motorDirection(uint8_t dir) {
