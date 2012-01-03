@@ -20,9 +20,12 @@
  */
 
 #include <stdint.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include <motor.h>
 #include <motor_low.h>
+#include <misc.h>
 
 #ifdef CMPERTICK
 #ifdef TICKSPERCM
@@ -36,8 +39,91 @@
 #endif
 #endif
 
+volatile uint8_t counterA = 0;
+volatile uint8_t cntA = 0;
+volatile uint8_t counterB = 0;
+volatile uint8_t cntB = 0;
+
 void driveInit() {
     motorInit();
+    rotateInit();
+    rotateLeftRight(CENTER);
+    rotateUpDown(CENTER);
+}
+
+ISR(TIMER0_COMPA_vect) {
+	// Up down
+	// Fake another prescaler divisor of 2
+	if (cntA < 100) {
+		cntA++;
+		return;
+	} else {
+		cntA = 0;
+	}
+	switch (counterA) {
+	case 0:
+		// Enable pin
+		UPDOWNPORT |= (1 << UPDOWNSERVO);
+		ledSet(2, 0);
+		counterA++;
+		break;
+	case 1:
+		// Disable pin
+		UPDOWNPORT &= ~(1 << UPDOWNSERVO);
+		ledSet(2, 1);
+		counterA++;
+		break;
+	case 2: case 3:
+		// OCR0A = 254;
+		counterA++;
+		break;
+	case 4:
+		counterA = 0;
+		break;
+	}
+}
+
+ISR(TIMER0_COMPB_vect) {
+	// Left right
+	// Fake another prescaler divisor of 2
+		if (cntB == 0) {
+			cntB++;
+			return;
+		} else {
+			cntB = 0;
+		}
+	switch (counterB++) {
+	case 0:
+		// Enable pin
+		LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
+		break;
+	case 1:
+		// Disable pin
+		LEFTRIGHTPORT &= ~(1 << LEFTRIGHTSERVO);
+		break;
+	case 2:
+		OCR0B = 254;
+		break;
+	case 4:
+		counterB = 0;
+		return;
+	}
+}
+
+void rotateInit() {
+	// CTC-Mode
+	LEFTRIGHTDDR |= (1 << LEFTRIGHTSERVO);
+	UPDOWNDDR |= (1 << UPDOWNSERVO); // Enable output drivers
+	TCCR0A |= (1 << WGM01); // CTC Mode, OCRA TOP, Update immediate
+	TCCR0B |= (1 << CS01) | (1 << CS00); // Prescaler 64
+}
+
+void rotateUpDown(uint8_t pos) {
+	UPDOWNREG = pos;
+}
+
+void rotateLeftRight(uint8_t pos) {
+	LEFTRIGHTREG = pos;
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {

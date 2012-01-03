@@ -22,28 +22,39 @@
 #ifndef motor_h
 #define motor_h
 
+// Motor Directions
 #define FORWARD 1
 #define BACKWARD 2
 #define RIGHT 3
 #define LEFT 4
 
-#define TURNSPEED 128
+// Servo positions
+#define CENTER 188
 
+#define TURNSPEED 128
 // define one, not both
 #define CMPERTICK 1
 // #define TICKSPERCM 1
-
 // distance between wheels in cm
 #define WHEELDISTANCE 20
+#define UPDOWNSERVO PB7
+#define UPDOWNPORT PORTB
+#define UPDOWNDDR DDRB
+#define LEFTRIGHTSERVO PG5
+#define LEFTRIGHTPORT PORTG
+#define LEFTRIGHTDDR DDRG
+#define LEFTRIGHTREG OCR0B
+#define UPDOWNREG OCR0A
 
 void driveInit(void);
-
 // dir = FORWARD or BACKWARD
 void drive(uint16_t cm, uint8_t speed, uint8_t dir);
-
 // dir = RIGHT or LEFT
 void turn(uint16_t degree, uint8_t dir);
-
 uint8_t driveDone(void);
+
+void rotateInit(void);
+void rotateUpDown(uint8_t pos);
+void rotateLeftRight(uint8_t pos);
 
 #endif

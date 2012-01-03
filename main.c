@@ -40,15 +40,16 @@ void menu(void);
 
 int main(void) {
 
-	ledInit();
-	ledFlash();
-	serialInit(51, 8, NONE, 1);
 	twiInit();
+	lcdInit();
+	ledInit();
+	serialInit(51, 8, NONE, 1);
 	driveInit();
     adcInit();
-    lcdInit();
     
 	sei();
+
+	ledFlash();
 
     menu();
     

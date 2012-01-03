@@ -41,8 +41,9 @@ void menuCamera(void);
 void menuBluetooth(void);
 void putPicSerial(void);
 void putPicLcd(void);
+void menuServo(void);
 
-#define MENUMSGS 4
+#define MENUMSGS 5
 // 3 entries per page
 // Number 1 starts with second entry
 // If you reach 9, continue with 1 again, insert empty line
@@ -53,12 +54,13 @@ char messageB[] = "\n1) Driving";
 char messageC[] = "\n2) Camera";
 // page 2
 char messageD[] = "\n3) Bluetooth";
+char messageE[] = "\n4) Servos";
 
-char *menuMessages[MENUMSGS] = { messageA, messageB, messageC, messageD };
+char *menuMessages[MENUMSGS] = { messageA, messageB, messageC, messageD, messageE };
 
 // Function pointers for messages. entry 0, 10, 20... NULL because it is not selectable
 void (*menuFunctions[MENUMSGS])(
-		void) = {NULL, &menuDriving, &menuCamera, &menuBluetooth };
+		void) = {NULL, &menuDriving, &menuCamera, &menuBluetooth, &menuServo };
 
 void menu(void) {
 	uint8_t temp;
@@ -70,23 +72,22 @@ void menu(void) {
 		// print entries
 		if ((page * 3) < MENUMSGS) {
 			lcdPutString(menuMessages[page * 3]);
-			_delay_ms(150); // Wait for lcd
+			_delay_ms(200); // Wait for lcd
 		}
 		if (((page * 3) + 1) < MENUMSGS) {
 			lcdPutString(menuMessages[(page * 3) + 1]);
-			_delay_ms(150); // Wait for lcd
+			_delay_ms(200); // Wait for lcd
 		} else {
 			lcdPutString("\n");
 		}
 		if (((page * 3) + 2) < MENUMSGS) {
 			lcdPutString(menuMessages[(page * 3) + 2]);
-			_delay_ms(150); // Wait for lcd
+			_delay_ms(200); // Wait for lcd
 		} else {
 			lcdPutString("\n");
 		}
 		lcdPutString("\n0) Next page"); // Goes to page 0 if last page
-
-		_delay_ms(100); // Wait for lcd
+		_delay_ms(200); // Wait for lcd
 
 		// wait for input, react accordingly
 		while ((c = lcdGetChar()) == 0);
@@ -165,6 +166,37 @@ void menuDriving(void) {
 			turn(dist, dir);
 		} else {
 			drive(dist, 200, dir);
+		}
+	}
+}
+
+void menuServo() {
+	uint8_t b;
+	uint16_t c;
+
+	while(1) {
+		lcdPutString("\nServo Control\n1)Up-Down\n2)Left-Right\n0)Exit");
+		_delay_ms(500); //Wait for lcd
+		while ((b = lcdGetChar()) == 0);
+		switch (b - '0') {
+		case 0:
+			return;
+		case 1:
+			lcdPutString("\nU-D? ");
+			_delay_ms(100); //Wait for lcd
+			while ((c = lcdGetNum()) > 255);
+			lcdPutString(bytesToString(c));
+			rotateUpDown((uint8_t)c);
+			_delay_ms(1000); //Wait for user to see
+			break;
+		case 2:
+			lcdPutString("\nL-R? ");
+			_delay_ms(100); //Wait for lcd
+			while ((c = lcdGetNum()) > 255);
+			lcdPutString(bytesToString(c));
+			rotateLeftRight((uint8_t)c);
+			_delay_ms(1000); //Wait for user to see
+			break;
 		}
 	}
 }

@@ -22,6 +22,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <util/delay.h>
 
 #include <misc.h>
@@ -195,26 +196,9 @@ char *byteToString(uint8_t byte) {
 }
 
 char *bytesToString(uint16_t bytes) {
-	uint8_t c, i = 0, tmp;
-	while (bytes > 0) {
-		string[i++] = (bytes % 10) + '0';
-		bytes /= 10;
-	}
-	// flip that shit
-	for (c = 0; c < (i / 2); c++) {
-		tmp = string[c];
-		string[c] = string[i - c];
-		string[i - c] = tmp;
-	}
-
-	string[i] = '\0';
-	return string;
+	return utoa(bytes, string, 10);
 }
 
 char *byteToHex(uint8_t byte) {
-	uint8_t helper[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	string[0] = helper[(byte & 0xF0) >> 4];
-	string[1] = helper[byte & 0x0F];
-	string[2] = '\0';
-	return string;
+	return utoa(byte, string, 16);
 }
