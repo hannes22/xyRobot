@@ -26,11 +26,10 @@
 void adcInit() {
 	// Enable ADC Module, start one conversion, wait for finish
 	PRR0 &= ~(1 << PRADC); // Disable ADC Power Reduction (Enable it...)
-	ADMUX = 0;
-	ADMUX |= (1 << REFS0) | (1 << ADLAR); // Ref: AVCC, left adjust result
-	ADCSRA |= (1 << ADEN) | (1 << ADSC); // Enable ADC
+	ADMUX = (1 << REFS0) | (1 << ADLAR); // Ref: AVCC, left adjust result
+	ADCSRA |= (1 << ADEN) | (1 << ADSC); // Enable ADC, start conversion
 	while (!adcReady());
-    adcGet();
+    adcGet(0); // Don't start another conversion
 }
 
 void adcStart(uint8_t channel) {
@@ -49,24 +48,28 @@ void adcStart(uint8_t channel) {
 uint8_t adcReady() {
 	// Is the measurement finished
 	if ((ADCSRA & (1 << ADSC)) != 0) {
-		return 1;
-	} else {
+		// ADSC bit is set
 		return 0;
+	} else {
+		return 1;
 	}
 }
 
-uint8_t adcGet() {
+uint8_t adcGet(uint8_t next) {
 	// Return measurements result
+	// Start next conversion
+	uint8_t temp = 0;
 	if (adcReady()) {
-		ADCSRA |= (1 << ADSC); // Clear flag
-		return ADCH;
-	} else {
-		return 0;
+		temp = ADCH;
+		if (next)
+			ADCSRA |= (1 << ADSC); // Start next conversion
 	}
+	return temp;
 }
 
 void adcClose() {
 	// deactivate adc
 	ADCSRA &= ~(1 << ADSC);
     PRR0 |= (1 << PRADC);
+    ADCSRA &= ~(1 << ADEN);
 }

@@ -29,8 +29,8 @@ void adcStart(uint8_t channel);
 // Check if conversion is already finished (0 = No; 1 = Yes)
 uint8_t adcReady(void);
 
-// Get Conversion Result
-uint8_t adcGet(void);
+// Get Conversion Result, start next conversion if next != 0
+uint8_t adcGet(uint8_t next);
 
 void adcClose(void);
 

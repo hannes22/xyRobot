@@ -44,6 +44,7 @@ SRC += lib/twi.c
 SRC += lib/adc.c
 SRC += lib/cam.c
 SRC += lib/motor.c
+SRC += lib/remoteHandler.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s

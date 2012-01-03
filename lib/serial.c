@@ -31,7 +31,7 @@ uint16_t volatile rxRead = 0;
 uint16_t volatile rxWrite = 0;
 uint16_t volatile txRead = 0;
 uint16_t volatile txWrite = 0;
-uint8_t volatile shouldStartTransmission = 0;
+uint8_t volatile shouldStartTransmission = 1;
 
 ISR(USART0_RX_vect) { // Receive complete
     rxBuffer[rxWrite] = UDR0;
@@ -115,6 +115,10 @@ uint8_t serialGet() {
 	} else {
 		return 0;
 	}
+}
+
+uint8_t serialBufferSpaceRemaining() {
+	return (((txWrite + 1) == txRead) || ((txRead == 0) && ((txWrite + 1) == TX_BUFFER_SIZE)));
 }
 
 void serialWrite(uint8_t data) {

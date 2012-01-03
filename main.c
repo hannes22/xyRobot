@@ -33,28 +33,29 @@
 #include <misc.h>
 #include <adc.h>
 #include <cam.h>
+#include <remoteHandler.h>
 
-void menu(void);
+//void menu(void);
 
 // Remember: Strings to the lcd should not end with \n
 
 int main(void) {
 
-	twiInit();
-	lcdInit();
+//	twiInit();
+//	lcdInit();
 	ledInit();
-	serialInit(51, 8, NONE, 1);
-	driveInit();
-    adcInit();
+	serialInit(UART_BAUD_SELECT(19200,16000000L), 8, NONE, 1);
+//	driveInit();
+	adcInit();
     
 	sei();
 
 	ledFlash();
 
-    menu();
+//	menu();
     
 	while(1) {
-        puts("\nRESET ME!");
+        remoteHandler();
 	}
 
 	return 0;

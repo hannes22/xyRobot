@@ -67,31 +67,33 @@ void menu(void) {
 	uint8_t i = 0;
 	uint16_t c;
 	uint8_t page = 0; // a page has 3 entries
+	uint8_t pageChanged = 1;
 
 	while (1) {
 		// print entries
-		if ((page * 3) < MENUMSGS) {
-			lcdPutString(menuMessages[page * 3]);
+		if (pageChanged != 0) {
+			if ((page * 3) < MENUMSGS) {
+				lcdPutString(menuMessages[page * 3]);
+				_delay_ms(200); // Wait for lcd
+			}
+			if (((page * 3) + 1) < MENUMSGS) {
+				lcdPutString(menuMessages[(page * 3) + 1]);
+				_delay_ms(200); // Wait for lcd
+			} else {
+				lcdPutString("\n");
+			}
+			if (((page * 3) + 2) < MENUMSGS) {
+				lcdPutString(menuMessages[(page * 3) + 2]);
+				_delay_ms(200); // Wait for lcd
+			} else {
+				lcdPutString("\n");
+			}
+			lcdPutString("\n0) Next page"); // Goes to page 0 if last page
 			_delay_ms(200); // Wait for lcd
 		}
-		if (((page * 3) + 1) < MENUMSGS) {
-			lcdPutString(menuMessages[(page * 3) + 1]);
-			_delay_ms(200); // Wait for lcd
-		} else {
-			lcdPutString("\n");
-		}
-		if (((page * 3) + 2) < MENUMSGS) {
-			lcdPutString(menuMessages[(page * 3) + 2]);
-			_delay_ms(200); // Wait for lcd
-		} else {
-			lcdPutString("\n");
-		}
-		lcdPutString("\n0) Next page"); // Goes to page 0 if last page
-		_delay_ms(200); // Wait for lcd
 
-		// wait for input, react accordingly
-		while ((c = lcdGetChar()) == 0);
-
+		// get input from LCD, react if it exists
+		c = lcdGetChar();
 		if (c == '0') {
 			// Next page requested
 			if ((MENUMSGS / 3) > page) { // There are more entries
@@ -99,7 +101,8 @@ void menu(void) {
 			} else {
 				page = 0;
 			}
-		} else if ((c != '?') && (c != '*') && (c != '#')) {
+			pageChanged = 1;
+		} else if ((c != '?') && (c != '*') && (c != '#') && (c != 0)) {
 			c -= '0';
 			if (((page * 3) + 2) > 9) {
 				// the number the user has to enter is smaller
@@ -114,7 +117,6 @@ void menu(void) {
 				if (menuFunctions[c] != NULL)
 					(*menuFunctions[c])();
 		}
-
 	}
 }
 

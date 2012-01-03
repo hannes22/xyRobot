@@ -33,13 +33,11 @@
 #define CAMREAD PA0
 #define CAMOUT 11
 
-#define CAMDELAY 1 // in microseconds
+#define CAMDELAY 10 // in microseconds
 
-// To get debugging messages, define CAMDEBUG
-// Set print handler in cam.c
-
-void camInit(uint8_t *regs);
+void camInit(uint8_t *regs); // Shoots a picture. No need to call camShoot directly afterwards...
 void camShoot(void);
+uint8_t camCanRead(void);
 uint8_t camGetByte(void);
 void camReset(void);
 

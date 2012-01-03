@@ -36,9 +36,10 @@
 uint8_t serialInit(uint16_t baud, uint8_t databits, uint8_t parity, uint8_t stopbits);
 
 uint8_t serialHasChar(void);
-
 uint8_t serialGet(void);
 
+// 1 if space remaining, 0 if full
+uint8_t serialBufferSpaceRemaining(void);
 void serialWrite(uint8_t data);
 void serialWriteString(char *data);
 
