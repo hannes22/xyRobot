@@ -24,14 +24,14 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <string.h>
-
+#include <avr/pgmspace.h>
 #include <misc.h>
 #include <motor.h>
 #include <cam.h>
 #include <serial.h>
 
 /*
- * This menu certainly handles more than 10 Menu Entries (including the header),
+ * This menu can handle more than 10 Menu Entries (including the header),
  * but it is not very pretty... Be advised!
  */
 
@@ -49,14 +49,34 @@ void menuServo(void);
 // If you reach 9, continue with 1 again, insert empty line
 // Start with \n
 // page 1
-char messageA[] = "\nxyRobot Beta";
-char messageB[] = "\n1) Driving";
-char messageC[] = "\n2) Camera";
+char messageA[] PROGMEM = "\nxyRobot Beta";
+char messageB[] PROGMEM = "\n1) Driving";
+char messageC[] PROGMEM = "\n2) Camera";
 // page 2
-char messageD[] = "\n3) Bluetooth";
-char messageE[] = "\n4) Servos";
+char messageD[] PROGMEM = "\n3) Bluetooth";
+char messageE[] PROGMEM = "\n4) Servos";
 
-char *menuMessages[MENUMSGS] = { messageA, messageB, messageC, messageD, messageE };
+PGM_P menuMessages[MENUMSGS] PROGMEM = { messageA, messageB, messageC, messageD, messageE };
+
+char buffer[64];
+
+char nextPageString[] PROGMEM = "\n0) Next page";
+char directionString[] PROGMEM = "\nDirection: 2 4 6 8";
+char forwardString[] PROGMEM = "\nForwards";
+char leftString[] PROGMEM = "\nLeft";
+char rightString[] PROGMEM = "\nRight";
+char backwardString[] PROGMEM = "\nBackwards";
+char distanceString[] PROGMEM = "\nDistance? ";
+char degreeString[] PROGMEM = "\nDegrees? ";
+char servoString[] PROGMEM = "\nServo Control\n1)Up-Down\n2)Left-Right\n0)Exit";
+char upDownString[] PROGMEM = "\nU-D? ";
+char leftRightString[] PROGMEM = "\nL-R? ";
+char camInitString[] PROGMEM = "\nInitializing Camera";
+char initString[] PROGMEM = "\nInitialized";
+char camString[] PROGMEM = "\nxyRob Gameboy Camera";
+char sendBTString[] PROGMEM = "1: Send Bluetooth";
+char printString[] PROGMEM = "\n2: Print here";
+char sendString[] PROGMEM = "\nSending...";
 
 // Function pointers for messages. entry 0, 10, 20... NULL because it is not selectable
 void (*menuFunctions[MENUMSGS])(
@@ -73,22 +93,26 @@ void menu(void) {
 		// print entries
 		if (pageChanged != 0) {
 			if ((page * 3) < MENUMSGS) {
-				lcdPutString(menuMessages[page * 3]);
+				strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[page * 3])));
+				lcdPutString(buffer);
 				_delay_ms(200); // Wait for lcd
 			}
 			if (((page * 3) + 1) < MENUMSGS) {
-				lcdPutString(menuMessages[(page * 3) + 1]);
+				strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 1])));
+				lcdPutString(buffer);
 				_delay_ms(200); // Wait for lcd
 			} else {
 				lcdPutString("\n");
 			}
 			if (((page * 3) + 2) < MENUMSGS) {
-				lcdPutString(menuMessages[(page * 3) + 2]);
+				strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 2])));
+				lcdPutString(buffer);
 				_delay_ms(200); // Wait for lcd
 			} else {
 				lcdPutString("\n");
 			}
-			lcdPutString("\n0) Next page"); // Goes to page 0 if last page
+			strcpy_P(buffer, nextPageString);
+			lcdPutString(buffer);
 			_delay_ms(200); // Wait for lcd
 		}
 
@@ -127,25 +151,31 @@ void menuDriving(void) {
 
 	while (1) {
 
-		hell: lcdPutString("\nDirection: 2 4 6 8");
+		hell:
+		strcpy_P(buffer, directionString);
+		lcdPutString(buffer);
 		_delay_ms(100); // Wait for lcd
 		while ((c = lcdGetChar()) == 0)
 			;
 		switch (c - '0') {
 		case 2:
-			lcdPutString("\nForwards");
+			strcpy_P(buffer, forwardString);
+			lcdPutString(buffer);
 			dir = FORWARD;
 			break;
 		case 4:
-			lcdPutString("\nLeft");
+			strcpy_P(buffer, leftString);
+			lcdPutString(buffer);
 			dir = LEFT;
 			break;
 		case 6:
-			lcdPutString("\nRight");
+			strcpy_P(buffer, rightString);
+			lcdPutString(buffer);
 			dir = RIGHT;
 			break;
 		case 8:
-			lcdPutString("\nBackwards");
+			strcpy_P(buffer, backwardString);
+			lcdPutString(buffer);
 			dir = BACKWARD;
 			break;
 		case 0:
@@ -156,9 +186,11 @@ void menuDriving(void) {
 		}
 		_delay_ms(100); // Wait for lcd
 		if ((dir == RIGHT) || (dir == LEFT)) {
-			lcdPutString("\nDegrees? ");
+			strcpy_P(buffer, degreeString);
+			lcdPutString(buffer);
 		} else {
-			lcdPutString("\nDistance? ");
+			strcpy_P(buffer, distanceString);
+			lcdPutString(buffer);
 		}
 		_delay_ms(100); // Wait for lcd
 		dist = lcdGetNum();
@@ -177,14 +209,17 @@ void menuServo() {
 	uint16_t c;
 
 	while(1) {
-		lcdPutString("\nServo Control\n1)Up-Down\n2)Left-Right\n0)Exit");
+		strcpy_P(buffer, servoString);
+		lcdPutString(buffer);
+
 		_delay_ms(500); //Wait for lcd
 		while ((b = lcdGetChar()) == 0);
 		switch (b - '0') {
 		case 0:
 			return;
 		case 1:
-			lcdPutString("\nU-D? ");
+			strcpy_P(buffer, upDownString);
+			lcdPutString(buffer);
 			_delay_ms(100); //Wait for lcd
 			while ((c = lcdGetNum()) > 255);
 			lcdPutString(bytesToString(c));
@@ -192,7 +227,8 @@ void menuServo() {
 			_delay_ms(1000); //Wait for user to see
 			break;
 		case 2:
-			lcdPutString("\nL-R? ");
+			strcpy_P(buffer, leftRightString);
+			lcdPutString(buffer);
 			_delay_ms(100); //Wait for lcd
 			while ((c = lcdGetNum()) > 255);
 			lcdPutString(bytesToString(c));
@@ -205,23 +241,29 @@ void menuServo() {
 
 void menuCamera(void) {
 	uint8_t c;
-	lcdPutString("\nInitializing camera");
+	strcpy_P(buffer, camInitString);
+	lcdPutString(buffer);
 	camInit(NULL);
-	lcdPutString("\nInitialized");
+	strcpy_P(buffer, initString);
+	lcdPutString(buffer);
 	_delay_ms(100); // Wait for lcd
 	while(1) {
-		lcdPutString("\nxyRob Gameboy Camera");
+		strcpy_P(buffer, camString);
+		lcdPutString(buffer);
 		_delay_ms(100); // Wait for lcd
-		lcdPutString("1: Send Bluetooth");
+		strcpy_P(buffer, sendBTString);
+		lcdPutString(buffer);
 		_delay_ms(100); // Wait for lcd
-		lcdPutString("\n2: Print here");
+		strcpy_P(buffer, printString);
+		lcdPutString(buffer);
 		_delay_ms(100); // Wait for lcd
 		while ((c = lcdGetChar()) == 0);
 		c -= '0';
 		switch(c) {
 		case 1:
 			camShoot();
-			lcdPutString("\nSending...");
+			strcpy_P(buffer, sendString);
+			lcdPutString(buffer);
 			putPicSerial();
 			break;
 		case 2:

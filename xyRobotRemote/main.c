@@ -15,10 +15,25 @@ int eventLoop = 1; // Event loop expression
 
 char toBeDrawn = 0;
 unsigned char cameraBuffer[128][128];
-char helpBuf[8][30];
-char helpSize[8];
-char statusBuf[2][60];
-char statusSize[2];
+char helpBuf[12][127];
+char helpSize[12];
+char statusBuf[8][127];
+char statusSize[8];
+int nextStatusLine = 1;
+char stringBuffer[127];
+unsigned char cameraSettings[9] = { 0x7F,	// Z & Offset
+									0x02,	// N & VH & Gain
+									0x00,	// Exposure
+									0x3C,	// Exposure small
+									0x01,	// P
+									0x00,	// M
+									0x01,	// X
+									0x04 };	// E & V
+
+void drawStat(char *s, int line);
+void changeGain(int dir); // 0: Reduce
+void changeExposureS(int dir);
+void changeExposure(int dir);
 
 void initBuffs() {
 	int i, j;
@@ -40,13 +55,16 @@ void drawText() {
 	XTextItem text;
 	int i, n;
 	text.font = font;
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 11; i++) {
 		n = helpSize[i];
 		text.nchars = n;
 		text.chars = helpBuf[i];
 		XDrawText(dsp, win, gc, 148, (i * 12) + 22, &text, 1);
 	}
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 8; i++) {
+		if (statusBuf[i][0] == '\0') {
+			break; // If we encounter an empty string, stop
+		}
 		n = statusSize[i];
 		text.nchars = n;
 		text.chars = statusBuf[i];
@@ -57,6 +75,7 @@ void drawText() {
 void draw() {
 	XClearWindow(dsp, win);
 	XCopyArea(dsp, cameraMap, win, gc, 0, 0, 128, 128, 10, 10);
+	drawStat("Status:", 0);
 	drawText();
 	XFlush(dsp);
 	toBeDrawn = 0;
@@ -78,25 +97,39 @@ void drawCamMap() {
 
 void drawHelp(char *s, int line) {
 	int i, n = 0;
-	while (s[n] != '\0') {
-		n++;
-	}
-	for (i = 0; i <= n; i++) {
-		helpBuf[line][i] = s[i];
-	}
-	helpSize[line] = n;
+
+	sprintf(helpBuf[line], "%s", s);
+	helpSize[line] = strlen(s);
 	toBeDrawn = 1;
 }
 
-void drawStatus(char *s, int line) {
+void moveStatus(int src, int dest) {
+	int i;
+	sprintf(statusBuf[dest], "%s", statusBuf[src]);
+	statusSize[dest] = statusSize[src];
+}
+
+void drawStatus(char *s) {
+	drawStat(s, nextStatusLine);
+	if (nextStatusLine < 7) {
+		nextStatusLine++;
+	}
+}
+
+void drawStat(char *s, int line) {
 	int i, n = 0;
-	while (s[n] != '\0') {
-		n++;
+
+	if ((statusBuf[7][0] != '\0') && (line == 7)) {
+		// We are at the last line, and it is already filled
+		// So we scroll
+		for (i = 0; i < 7; i++) {
+			moveStatus(i + 1, i);
+		}
 	}
-	for (i = 0; i <= n; i++) {
-		statusBuf[line][i] = s[i];
-	}
-	statusSize[line] = n;
+	
+
+	sprintf(statusBuf[line], "%s", s);
+	statusSize[line] = strlen(s);
 	toBeDrawn = 1;
 }
 
@@ -107,7 +140,7 @@ void randomizeCamBuf() {
 			cameraBuffer[i][j] = rand() % 256;
 		}
 	}
-	drawStatus("Randomized!", 1);
+	drawStatus("Randomized!");
 	drawCamMap();
 }
 
@@ -118,24 +151,36 @@ void blackCamBuf() {
 			cameraBuffer[i][j] = 0;
 		}
 	}
-	drawStatus("Pitch Black!", 1);
+	drawStatus("Pitch Black!");
 	drawCamMap();
 }
 
 void captureImage() {
-	int x = 0, y = 0, t;
+	int x = 0, y = 0, t, i;
 	char c = 'c';
 
-	drawStatus("Capture...", 1);
+	drawStatus("Capture...");
 	draw(); // Needs to happen now!
 
 	while((t = serialWrite(&c, 1)) != 1) {
 		if (t == -1) {
-			drawStatus(strerror(errno), 1);
+			drawStatus(strerror(errno));
 			toBeDrawn = 1;
 			return;
 		}
 	} // Send 'c' command
+	// Send registers
+	i = 0; // Num of bytes transmitted
+	while (i < 8) {
+		t = serialWrite((cameraSettings + i), (8 - i));
+		if (t == -1) {
+			drawStatus(strerror(errno));
+			toBeDrawn = 1;
+			return;
+		} else {
+			i += t;
+		}
+	}
 	pauseExec(1); // Wait a second
 	
 	// Recieve
@@ -145,7 +190,7 @@ void captureImage() {
 		while (x < 128) {
 			while (serialRead(&cameraBuffer[x][y], 1) != 1) {
 				if (getTimerDiff() >= 10000) { // Max. 10 seconds
-					drawStatus("Robot doesn't answer!", 1);
+					drawStatus("Robot doesn't answer!");
 					toBeDrawn = 1;
 					return;
 				}
@@ -154,7 +199,7 @@ void captureImage() {
 		}
 		y++;
 	}
-	drawStatus("Got picture!", 1);
+	drawStatus("Got picture!");
 	drawCamMap();
 }
 
@@ -165,30 +210,30 @@ void tryConnect() {
 
 	buf[12] = '\0';
 
-	drawStatus("Sending ping...", 1);
+	drawStatus("Sending ping...");
 	draw();
 
 	while((t = serialWrite(c, 1)) != 1) {
 		if (t == -1) {
-			drawStatus(strerror(errno), 1);
+			drawStatus(strerror(errno));
 			toBeDrawn = 1;
 			return;
 		}
 	} // Send ?
 
-	drawStatus("Waiting for robot...", 1);
+	drawStatus("Waiting for robot...");
 	draw();
 
 	startTimer();
 	do {
 		t = serialRead((buf + i), 1); // Read a char
 		if (i == -1) {
-			drawStatus(strerror(errno), 1);
+			drawStatus(strerror(errno));
 			toBeDrawn = 1;
 			return;
 		}
 		if (getTimerDiff() >= 4000) {
-			drawStatus("Robot doesn't answer!", 1);
+			drawStatus("Robot doesn't answer!");
 			toBeDrawn = 1;
 			return;
 		}
@@ -205,7 +250,7 @@ void tryConnect() {
 		}
 	} while (1);
 
-	drawStatus(buf, 1);
+	drawStatus(buf);
 	toBeDrawn = 1;
 
 	while(serialRead(buf, 12) != 0); // Flush input, probably garbage
@@ -229,7 +274,97 @@ void keyReact(KeySym key) {
 		case XK_p:
 			tryConnect();
 			break;
+		case XK_g:
+			changeGain(0);
+			break;
+		case XK_h:
+			changeGain(1);
+			break;
+		case XK_j:
+			changeExposureS(0);
+			break;
+		case XK_k:
+			changeExposureS(1);
+			break;
+		case XK_n:
+			changeExposure(0);
+			break;
+		case XK_m:
+			changeExposure(1);
+			break;
 	}
+}
+
+void changeGain(int dir) {
+	unsigned char gain = cameraSettings[1] & 0x0F;
+	if (dir == 0) {
+		// Decrease
+		if (gain > 0) {
+			gain--;
+			sprintf(stringBuffer, "Gain: %d", gain);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Lowest gain possible: 0");
+		}
+	} else {
+		// Increase
+		if (gain < 0x0F) {
+			gain++;
+			sprintf(stringBuffer, "Gain: %d", gain);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Highest gain possible: 15");
+		}
+	}
+	cameraSettings[1] = (cameraSettings[1] & 0xF0) | (gain);
+}
+
+void changeExposureS(int dir) {
+	unsigned char exp = cameraSettings[3];
+	if (dir == 0) {
+		// Decrease
+		if (exp >= 10) {
+			exp -= 10;
+			sprintf(stringBuffer, "ExposureSmall: %d", exp);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Lowest ExpSm possible: 0");
+		}
+	} else {
+		// Increase
+		if (exp <= 245) {
+			exp += 10;
+			sprintf(stringBuffer, "ExposureSmall: %d", exp);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Highest ExpSm possible: 255");
+		}
+	}
+	cameraSettings[3] = exp;
+}
+
+void changeExposure(int dir) {
+	unsigned char exp = cameraSettings[2];
+	if (dir == 0) {
+		// Decrease
+		if (exp >= 10) {
+			exp -= 10;
+			sprintf(stringBuffer, "Exposure: %d", exp);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Lowest Exp possible: 0");
+		}
+	} else {
+		// Increase
+		if (exp <= 245) {
+			exp += 10;
+			sprintf(stringBuffer, "Exposure: %d", exp);
+			drawStatus(stringBuffer);
+		} else {
+			drawStatus("Highest Exp possible: 255");
+		}
+	}
+	cameraSettings[2] = exp;
 }
 
 int main(int argc, char **argv){
@@ -265,9 +400,15 @@ int main(int argc, char **argv){
 	drawHelp("r: Randomize cam buffer", 2);
 	drawHelp("b: Black cam buffer", 3);
 	drawHelp("c: Capture image", 4);
-	drawHelp("p: Try contacting robot", 5);
-	drawStatus("Status:", 0);
-	drawStatus("Ready...", 1);
+	drawHelp("p: Probe for robot", 5);
+	drawHelp("g: Reduce Gain", 6);
+	drawHelp("h: Increase Gain", 7);
+	drawHelp("j: Reduce Exposure Small", 8);
+	drawHelp("k: Increase Exposure Small", 9);
+	drawHelp("n: Reduce Exposure", 10);
+	drawHelp("m: Increase Exposure", 11);
+
+	drawStatus("Ready...");
 
 	while (eventLoop) {
 		XNextEvent(dsp, &evt);

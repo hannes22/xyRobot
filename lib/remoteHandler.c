@@ -9,6 +9,10 @@
 #include <remoteHandler.h>
 #include <serial.h>
 #include <cam.h>
+#include <avr/pgmspace.h>
+
+char buffer[32];
+char versionString[] PROGMEM = "xyRobot BETA\n";
 
 void sendCamPic(void);
 
@@ -18,7 +22,8 @@ void remoteHandler() {
 		c = serialGet();
 		switch(c) {
 		case '?':
-			serialWriteString("xyRobot BETA\n");
+			strcpy_P(buffer, versionString);
+			serialWriteString(buffer);
 			break;
 
 		case 'c':
@@ -34,7 +39,13 @@ void remoteHandler() {
 
 void sendCamPic() {
 	uint16_t i = 0;
-	camInit(NULL);
+	uint8_t reg[8];
+	while (i < 8) {
+		while (!serialHasChar());
+		reg[i++] = serialGet();
+	}
+
+	camInit(reg);
 	// Transmit all the bytes...
 	for (i = 0; i < 16384; i++) {
 		serialWrite(camGetByte());

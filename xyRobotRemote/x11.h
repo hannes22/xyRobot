@@ -1,5 +1,5 @@
 #define WIDTH 300
-#define HEIGHT 200
+#define HEIGHT 250
 
 #include <X11/Xlib.h>
 

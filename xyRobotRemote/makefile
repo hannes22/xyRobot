@@ -5,6 +5,10 @@ SRC += util.c
 
 TARGET = remote
 
+HEADERS = x11.h
+HEADERS += util.h
+HEADERS += serial.h
+
 # Define all object files.
 OBJ = $(SRC:.c=.o) 
 
@@ -23,7 +27,7 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ) $(LDFLAGS)
 
-%.o: %.c %.h
+%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $<
 
 clean:

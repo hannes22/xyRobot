@@ -27,7 +27,7 @@ int xInit() {
 	white = WhitePixel(dsp, screenNumber);
 	black = BlackPixel(dsp, screenNumber);
 
-	win = XCreateSimpleWindow(dsp, DefaultRootWindow(dsp), 0, 0, WIDTH, HEIGHT, 0, black, white);
+	win = XCreateSimpleWindow(dsp, DefaultRootWindow(dsp), 50, 50, WIDTH, HEIGHT, 0, black, white);
 
 	XMapWindow(dsp, win);
 	XSelectInput(dsp, win, StructureNotifyMask);
