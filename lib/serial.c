@@ -132,6 +132,7 @@ void serialWrite(uint8_t data) {
 	if (shouldStartTransmission == 1) {
 		shouldStartTransmission = 0;
 		UCSR0B |= (1 << UDRIE0); // Enable Interrupt
+		UCSR0A |= (1 << UDRE0); // Trigger Interrupt
 	}
 }
 

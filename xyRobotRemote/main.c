@@ -6,6 +6,7 @@
 #include <X11/keysym.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
 
 #include "serial.h"
 #include "x11.h"
@@ -367,9 +368,17 @@ void changeExposure(int dir) {
 	cameraSettings[2] = exp;
 }
 
+void intHandler(int dummy) {
+	xClose();
+	serialClose();
+}
+
 int main(int argc, char **argv){
 
 	XEvent evt;
+
+	signal(SIGINT, intHandler);
+	signal(SIGQUIT, intHandler);
 
 	if (argc <= 1) {
 		printf("Usage:\n%s /path/to/serial\n", argv[0]);

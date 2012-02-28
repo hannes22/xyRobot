@@ -39,91 +39,33 @@
 #endif
 #endif
 
-volatile uint8_t counterA = 0;
-volatile uint8_t cntA = 0;
-volatile uint8_t counterB = 0;
-volatile uint8_t cntB = 0;
+#include <util/delay.h>
 
 void driveInit() {
     motorInit();
     rotateInit();
-    rotateLeftRight(CENTER);
-    rotateUpDown(CENTER);
-}
-
-ISR(TIMER0_COMPA_vect) {
-	// Up down
-	// Fake another prescaler divisor of 2
-	if (cntA < 100) {
-		cntA++;
-		return;
-	} else {
-		cntA = 0;
-	}
-	switch (counterA) {
-	case 0:
-		// Enable pin
-		UPDOWNPORT |= (1 << UPDOWNSERVO);
-		ledSet(2, 0);
-		counterA++;
-		break;
-	case 1:
-		// Disable pin
-		UPDOWNPORT &= ~(1 << UPDOWNSERVO);
-		ledSet(2, 1);
-		counterA++;
-		break;
-	case 2: case 3:
-		// OCR0A = 254;
-		counterA++;
-		break;
-	case 4:
-		counterA = 0;
-		break;
-	}
-}
-
-ISR(TIMER0_COMPB_vect) {
-	// Left right
-	// Fake another prescaler divisor of 2
-		if (cntB == 0) {
-			cntB++;
-			return;
-		} else {
-			cntB = 0;
-		}
-	switch (counterB++) {
-	case 0:
-		// Enable pin
-		LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
-		break;
-	case 1:
-		// Disable pin
-		LEFTRIGHTPORT &= ~(1 << LEFTRIGHTSERVO);
-		break;
-	case 2:
-		OCR0B = 254;
-		break;
-	case 4:
-		counterB = 0;
-		return;
-	}
+    rotateLeftRight(LR_CENTER);
+    rotateUpDown(UD_CENTER);
 }
 
 void rotateInit() {
-	// CTC-Mode
+	// 8-bit Counter
+	TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM. Top = 0xFF
+	TCCR0A |= (1 << COM0A1) | (1 << COM0B1); // Non inverting mode
+	TCCR0B |= (1 << CS02) | (1 << CS00); // Prescaler 1024 => roughly 20ms per round
+
+	UPDOWNDDR |= (1 << UPDOWNSERVO);
 	LEFTRIGHTDDR |= (1 << LEFTRIGHTSERVO);
-	UPDOWNDDR |= (1 << UPDOWNSERVO); // Enable output drivers
-	TCCR0A |= (1 << WGM01); // CTC Mode, OCRA TOP, Update immediate
-	TCCR0B |= (1 << CS01) | (1 << CS00); // Prescaler 64
 }
 
 void rotateUpDown(uint8_t pos) {
-	UPDOWNREG = pos;
+	uint16_t mid = pos * 15;
+	UPDOWNREG = ((uint8_t)(mid / 256)) + 16;
 }
 
 void rotateLeftRight(uint8_t pos) {
-	LEFTRIGHTREG = pos;
+	uint16_t mid = pos * 15;
+	LEFTRIGHTREG = ((uint8_t)(mid / 256)) + 16;
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {

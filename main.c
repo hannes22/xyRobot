@@ -45,7 +45,7 @@ int main(void) {
 //	lcdInit();
 	ledInit();
 	serialInit(UART_BAUD_SELECT(19200,16000000L), 8, NONE, 1);
-//	driveInit();
+	driveInit();
 	adcInit();
     
 	sei();
