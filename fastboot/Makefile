@@ -163,10 +163,10 @@ endif
 atmel_def.h: $(ATMEL_INC) Makefile
 #        We use gawk instead of egrep here due to problems with
 #        WinAVR's egrep (which I didn't dive into):
-	./_conv.awk $< | awk '/PAGESIZE|SIGNATURE_|SRAM_|FLASHEND|BOOT/' > $@
+	./_conv.awk $< | gawk '/PAGESIZE|SIGNATURE_|SRAM_|FLASHEND|BOOT/' > $@
 
 atmel_def.mak: atmel_def.h
-	awk '{ printf "%s = %s\n", $$2, $$3 }' $< > $@
+	gawk '{ printf "%s = %s\n", $$2, $$3 }' $< > $@
 
 
 bootload.o: $(ASMSRC) $(ADDITIONAL_DEPENDENCIES)
@@ -189,7 +189,7 @@ clean:
 # preprocessing the asm files (bootload.gas) for debugging:
 dbg:
 	avr-cpp $(CFLAGS) -dD -E added/bootload.S > bootload.defs
-	sort bootload.defs | awk '/^#define/' > bootload.sdefs
+	sort bootload.defs | gawk '/^#define/' > bootload.sdefs
 	avr-gcc -E $(CFLAGS) added/bootload.S -o bootload.gas
 
 

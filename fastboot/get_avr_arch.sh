@@ -40,7 +40,7 @@ magic=";#magic1295671ghkl-."
 # call gcc, asking it for the command line which it would use for
 # linking:
 set -- $(avr-gcc -m"$mcu" -### "$1" -o "$magic" 2>&1 \
-         | awk '/^avr-gcc:/||/ld.*'"$magic"'.*"-lgcc"/')
+         | gawk '/^avr-gcc:/||/ld.*'"$magic"'.*"-lgcc"/')
 
 if [ "$1" = "avr-gcc:" ]; then
     # we have an error message from gcc:

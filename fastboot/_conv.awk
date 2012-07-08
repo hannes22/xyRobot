@@ -1,8 +1,8 @@
-#!/usr/bin/awk -f
+#!/usr/bin/gawk -f
 
 # _conv.awk
 #
-# awk script to convert AVR Assembler syntax into GNU gas syntax.
+# gawk script to convert AVR Assembler syntax into GNU gas syntax.
 #
 # This catches some of the more common conversion tasks.
 # One big problem - that AVR Asm uses word addresses, but gas

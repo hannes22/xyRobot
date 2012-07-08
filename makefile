@@ -239,9 +239,6 @@ MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
 
-
-
-
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) 
 
@@ -259,10 +256,16 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
-
-
-
 # Default target.
+boot: merge clean
+
+merge: all
+	make -C fastboot
+	cp fastboot/bootload.hex bootload.hex
+	make -C fastboot clean
+	cat $(TARGET).hex bootload.hex | gawk -f merge.awk > xyRobotFull.hex
+	rm bootload.hex
+
 all: begin gccversion sizebefore build sizeafter finished end
 
 build: elf hex eep lss sym
@@ -272,8 +275,6 @@ hex: $(TARGET).hex
 eep: $(TARGET).eep
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
-
-
 
 # Eye candy.
 # AVR Studio 3.x does not check make's exit code but relies on
@@ -299,8 +300,6 @@ sizebefore:
 sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
 
-
-
 # Display compiler version information.
 gccversion : 
 	@$(CC) --version
@@ -311,9 +310,6 @@ gccversion :
 program: $(TARGET).hex
 	$(BOOTLOADER) $(TARGET).hex
 
-
-
-
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .data-0x800000 \
@@ -321,19 +317,15 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .noinit-0x800000 \
 --change-section-address .eeprom-0x810000 
 
-
 coff: $(TARGET).elf
 	@echo
 	@echo $(MSG_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-avr $< $(TARGET).cof
 
-
 extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_EXTENDED_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-ext-avr $< $(TARGET).cof
-
-
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
@@ -359,8 +351,6 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_SYMBOL_TABLE) $@
 	$(NM) -n $< > $@
 
-
-
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
@@ -369,26 +359,21 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
 
-
 # Compile: create object files from C source files.
 %.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
 	$(CC) -c $(ALL_CFLAGS) $< -o $@ 
 
-
 # Compile: create assembler files from C source files.
 %.s : %.c
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
-
 
 # Assemble: create object files from assembler source files.
 %.o : %.S
 	@echo
 	@echo $(MSG_ASSEMBLING) $<
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
-
-
 
 # Target: clean project.
 clean: begin clean_list finished end
@@ -413,14 +398,10 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
 
-
-
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
-
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
 clean clean_list program
-

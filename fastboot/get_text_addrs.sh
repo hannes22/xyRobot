@@ -43,7 +43,7 @@ end_wordaddr=$(($1))
 flash_end=$(printf "%#x\n" $(($1 * 2 + 1)))
 
 boot_map=$(avr-objdump -h bootload.o) || exit
-boot_bytes=$(echo "$boot_map" | awk '/.text/ {print "0x" $3}')
+boot_bytes=$(echo "$boot_map" | gawk '/.text/ {print "0x" $3}')
 boot_bytes=$((boot_bytes + 2))  # add stub size
 boot_words=$((boot_bytes / 2))
 

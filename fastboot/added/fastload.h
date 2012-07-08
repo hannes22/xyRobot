@@ -20,7 +20,7 @@
 #define  VERSION 0x0201
 
 #define  XTAL F_CPU	// 8MHz, not critical
-#define  BootDelay XTAL	// 0.33s
+#define  BootDelay XTAL	// 1s
 #define  BOOTDELAY XTAL
 
 ;------------------------------	select UART mode -------------------------
