@@ -263,7 +263,7 @@ merge: all
 	make -C fastboot
 	cp fastboot/bootload.hex bootload.hex
 	make -C fastboot clean
-	cat $(TARGET).hex bootload.hex | gawk -f merge.awk > xyRobotFull.hex
+	cat $(TARGET).hex bootload.hex | awk -f merge.awk > xyRobotFull.hex
 	rm bootload.hex
 
 all: begin gccversion sizebefore build sizeafter finished end
