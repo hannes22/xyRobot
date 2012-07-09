@@ -22,14 +22,24 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.imageio.*;
+import java.io.*;
 
-public class Remote extends JFrame implements KeyListener {
+public class Remote extends JFrame implements KeyListener, ActionListener {
 
-	private final int width = 400;
-	private final int height = 400;
+	private final String version = "0.1";
+	private final int width = 500;
+	private final int height = 300;
 
-	private String serialPort = null;
 	private PaintCanvas canvas = null;
+	private JLabel title = null;
+	private JComboBox portSelector = null;
+	private JButton openPort = null;
+	private JButton closePort = null;
+	private JButton trigger = null;
+	private JButton save = null;
+
+	private JSlider exposure = null;
 
 	public Remote() {
 		super("xyRobotRemote");
@@ -37,6 +47,7 @@ public class Remote extends JFrame implements KeyListener {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addKeyListener(this);
 		setLayout(null);
+		setResizable(false);
 		Container c = getContentPane();
 
 		canvas = new PaintCanvas(256, 256, 2);
@@ -44,16 +55,84 @@ public class Remote extends JFrame implements KeyListener {
 		c.add(canvas);
 		canvas.randomize();
 		canvas.addKeyListener(this);
-		
+
+		title = new JLabel();
+		title.setText("xyRobotRemote V " + version);
+		title.setBounds(285, 10, 210, 20);
+		title.addKeyListener(this);
+		c.add(title);
+
+		String[] ports = HelperUtility.getPorts();
+		if ((ports == null) || (ports.length == 0)) {
+			showError("No serial ports found!");
+			System.exit(1);
+		}
+		portSelector = new JComboBox(ports);
+		portSelector.addKeyListener(this);
+		portSelector.setBounds(280, 35, 210, 30);
+		c.add(portSelector);
+
+		openPort = new JButton();
+		openPort.setText("Open");
+		openPort.setBounds(280, 70, 100, 30);
+		openPort.addKeyListener(this);
+		openPort.addActionListener(this);
+		c.add(openPort);
+
+		closePort = new JButton();
+		closePort.setText("Close");
+		closePort.setEnabled(false);
+		closePort.setBounds(385, 70, 100, 30);
+		closePort.addKeyListener(this);
+		closePort.addActionListener(this);
+		c.add(closePort);
+
+		trigger = new JButton();
+		trigger.setText("Shoot Pic");
+		trigger.setEnabled(false);
+		trigger.setBounds(280, 105, 100, 30);
+		trigger.addKeyListener(this);
+		trigger.addActionListener(this);
+		c.add(trigger);
+
+		save = new JButton();
+		save.setText("Save image");
+		save.setBounds(385, 105, 100, 30);
+		save.addKeyListener(this);
+		save.addActionListener(this);
+		c.add(save);
+
+		exposure = new JSlider(0, 1048); // Exposure time in ms
+		exposure.setMajorTickSpacing(262);
+		exposure.setMinorTickSpacing(131);
+		exposure.setEnabled(false);
+		exposure.setBounds(280, 140, 210, 40);
+		exposure.createStandardLabels(262);
+		exposure.setPaintTicks(true);
+		exposure.setPaintLabels(true);
+		exposure.addKeyListener(this);
+		c.add(exposure);
+
 		setVisible(true);
 	}
 
-	public Remote(String port) {
-		this();
-		serialPort = port;
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource().equals(save)) {
+			JFileChooser chooser = new JFileChooser();
+			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+				String path = chooser.getSelectedFile().getAbsolutePath();
+				if (!path.endsWith(".png")) {
+					path += ".png";
+				}
+				File f = new File(path);
+				try {
+					ImageIO.write(canvas.paintIntoImage(), "png", f);
+				} catch (Exception ex) {
+					showError("Could not write!\n" + ex.getMessage());
+				}
+			}
+		}
 	}
-
-	public void keyPressed(KeyEvent e) { }
 
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyChar()) {
@@ -67,111 +146,15 @@ public class Remote extends JFrame implements KeyListener {
 		}
 	}
 
-	public void keyTyped(KeyEvent e) { }
-
-	private short[] readData(int length) {
-		if (serialPort == null) {
-			serialPort = askForSerialPort(HelperUtility.getPorts());
-			if (serialPort == null) { showError("Could not ask for port!"); System.exit(1); }
-			return readData(length);
-		} else {
-			if (HelperUtility.openPort(serialPort)) {
-				short[] tmp = HelperUtility.readData(length);
-				HelperUtility.closePort();
-				return tmp;
-			} else {
-				showError("Could not open port!");
-				System.exit(1);
-			}
-		}
-		return null;
-	}
-
-	private void writeData(short[] data, int length) {
-		if (serialPort == null) {
-			serialPort = askForSerialPort(HelperUtility.getPorts());
-			if (serialPort == null) { showError("Could not ask for port!"); System.exit(1); }
-			writeData(data, length);
-		} else {
-			if (HelperUtility.openPort(serialPort)) {
-				boolean tmp = HelperUtility.writeData(data, length);
-				HelperUtility.closePort();
-				if(!tmp) {
-					showError("Could not write!");
-					System.exit(1);
-				}
-			} else {
-				showError("Could not open port!");
-				System.exit(1);
-			}
-		}
-	}
-
-	private void showError(String error) {
+	protected void showError(String error) {
 		System.out.println(error);
 		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
-	private String askForSerialPort(String[] ports) {
-		if ((ports != null) && (ports.length > 0)) {
-			String s = (String)JOptionPane.showInputDialog(this, "Choose a serial port:",
-				"Serial Port Selection", JOptionPane.PLAIN_MESSAGE, null,
-				(Object[])ports, (Object)ports[0]);
-			return s;
-		} else {
-			return null;
-		}
-	}
-
 	public static void main (String[] args) {
-		if (args.length == 0) {
-			Remote r = new Remote();
-			r.serialPort = r.askForSerialPort(HelperUtility.getPorts());
-		} else {
-			Remote r = new Remote(args[0]);
-		}
-	}
-}
-
-class PaintCanvas extends JPanel {
-
-	private int[][] data = null;
-	private int scale;
-
-	public PaintCanvas(int w, int h, int magnify) {
-		super();
-		scale = magnify - 1;
-		data = new int[(w / (scale + 1))][(h / (scale + 1))];
+		Remote r = new Remote();
 	}
 
-	public void randomize() {
-		java.util.Random r = new java.util.Random();
-		int w = getWidth();
-		int h = getHeight();
-		for (int i = 0; i < (w / (scale + 1)); i++) {
-			for (int j = 0; j < (h / (scale + 1)); j++) {
-				data[i][j] = r.nextInt(256);
-			}
-		}
-		repaint();
-	}
-
-	public void repaint() {
-		repaint(0, 0, 0, getWidth(), getHeight());
-	}
-
-	public boolean isOpaque() {
-		return true;
-	}
-
-	protected void paintComponent(Graphics g) {
-		int w = getWidth();
-		int h = getHeight();
-		for (int i = 0; i < (w / (scale + 1)); i++) {
-			for (int j = 0; j < (h / (scale + 1)); j++) {
-				g.setColor(new Color(data[i][j], data[i][j], data[i][j]));
-				g.fillRect((i * (scale + 1)), (j * (scale + 1)), (i * (scale + 1)) + scale, (j * (scale + 1)) + scale);
-			}
-		}
-	}
+	public void keyPressed(KeyEvent e) { }
+	public void keyTyped(KeyEvent e) { }
 }
