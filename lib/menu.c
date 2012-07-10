@@ -155,8 +155,7 @@ void menuDriving(void) {
 		strcpy_P(buffer, directionString);
 		lcdPutString(buffer);
 		_delay_ms(100); // Wait for lcd
-		while ((c = lcdGetChar()) == 0)
-			;
+		while ((c = lcdGetChar()) == 0);
 		switch (c - '0') {
 		case 2:
 			strcpy_P(buffer, forwardString);

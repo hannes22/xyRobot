@@ -16,6 +16,10 @@
  *   - added optional limit to number of connection attempts
  *   - added optional silent run
  *   - error messages sent to stderr with exit 0 on success, -1 failure
+ *
+ * Changes by Thomas Buck
+ *   2012-07-10:
+ *   - removed devices.txt file. Now in code!
  */
 
 
@@ -64,10 +68,32 @@ char reboot_chars[256]="";
 
 static struct timeval t_start; //time
 static int foo;
-// Text file with device signatures
-// Find its path based on binary path.
-char devices_file_p[256]="", *chp;
-#define DEVICES_FILE "devices.txt"
+
+char *signatures[] = {
+	"1e9007", "ATtiny13",
+	"1e910a", "ATtiny2313",
+	"1e9205", "ATmega48",
+	"1e9206", "ATtiny45",
+	"1e9207", "ATtiny44",
+	"1e9208", "ATtiny461",
+	"1e9306", "ATmega8515}",
+	"1e9307", "ATmega8",
+	"1e9308", "ATmega8535",
+	"1e930a", "ATmega88",
+	"1e930b", "ATtiny85",
+	"1e930c", "ATtiny84",
+	"1e930d", "ATtiny861",
+	"1e930f", "ATmega88P",
+	"1e9403", "ATmega16",
+	"1e9404", "ATmega162",
+	"1e9406", "ATmega168",
+	"1e9501", "ATmega323",
+	"1e9502", "ATmega32",
+	"1e9609", "ATmega644",
+	"1e9802", "ATmega2561",
+	"1e940A", "ATmega164P",
+	"1e9801", "ATmega2560"
+};
 
 /**
  * Main, startup
@@ -89,11 +115,6 @@ int main(int argc, char *argv[]) {
 
 	// if crc is supported (not supportet if 2)
 	int crc_on;
-	
-	// The path to the binary (for finding devices.txt)
-	readlink("/proc/self/exe", devices_file_p, 255); // symlink to this binary
-	chp = strrchr (devices_file_p,'/');  // get the last path separator
-	if (chp) strcpy (chp+1,DEVICES_FILE); // copy the device filename after the path separator
 
 	// Parsing / checking parameter
 	int i;
@@ -173,11 +194,11 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (!silent) {
-		// printf("COM dev  : %s\n", device);
-		// printf("Baudrate : %i\n", baud);
-		// if (*reboot_chars) printf ("Reboot   : %s\n",argv[reboot_arg]);
-		// if (ntries) printf  ("Attempts : %d\n",ntries);
-		// printf("%s: %s\n", (verify == 1 ? "Verify   " : "Program  "), hexfile);
+		printf("COM dev  : %s\n", device);
+		printf("Baudrate : %i\n", baud);
+		if (*reboot_chars) printf ("Reboot   : %s\n",argv[reboot_arg]);
+		if (ntries) printf  ("Attempts : %d\n",ntries);
+		printf("%s: %s\n", (verify == 1 ? "Verify   " : "Program  "), hexfile);
 		// printf("-------------------------------------------------\n");
 	}
 
@@ -487,16 +508,17 @@ int sscanhex(char *str, unsigned int *hexout, int n) {
  */
 void usage() {
 	fprintf(stderr,"./bootloader [-d /dev/ttyS0] [-b 9600] [-r '\\n\\nRESET\\n'] [-s] [-a 100] -[v|p] file.hex\n");
-	// fprintf(stderr,"-d Device\n");
-	// fprintf(stderr,"-b Baudrate\n");
-	// fprintf(stderr,"-v Verify\n");
-	// fprintf(stderr,"-p Program\n");
-	// fprintf(stderr,"-r Character sequence to reboot AVR (with std. C escape codes)\n");
-	// fprintf(stderr,"-s Silent run - exits 0 on success, -1 on failure, errors to stderr\n");
-	// fprintf(stderr,"-a Number of AVR bootloader connection attempts (def.: 0 = infinite)\n");
+	fprintf(stderr,"-d Device\n");
+	fprintf(stderr,"-b Baudrate\n");
+	fprintf(stderr,"-v Verify\n");
+	fprintf(stderr,"-p Program\n");
+	fprintf(stderr,"-r Character sequence to reboot AVR (with std. C escape codes)\n");
+	fprintf(stderr,"-s Silent run - exits 0 on success, -1 on failure, errors to stderr\n");
+	fprintf(stderr,"-a Number of AVR bootloader connection attempts (def.: 0 = infinite)\n");
 	// fprintf(stderr,"\n");
 	// fprintf(stderr,"Author: Andreas Butti (andreasbutti at bluewin dot ch)\n");
 	// fprintf(stderr,"Modified by: Ilya Goldberg (igg at cathilya dot org\n");
+	// fprintf(stderr, "Modified by: Thomas Buck (xythobuz at xythobuz dot org\n");
 
 	exit(-1);
 }
@@ -505,7 +527,7 @@ void usage() {
  * Try to connect a device
  */
 void connect_device() {
-	const char * ANIM_CHARS = "CONNECTING...";
+	const char * ANIM_CHARS = "\\|/-";
 	const char PASSWORD[6] = {'P', 'e', 'd', 'a', 0xff, 0};
 	
 	int state = 0;
@@ -544,10 +566,11 @@ void connect_device() {
 			}
 		}
 		state++;
-		state = state % 12;
+		state = state % sizeof(ANIM_CHARS) - 2;
 		if (ntries) try--;
-		// usleep(10000);//wait 10ms
-		usleep(2084); // Hack for 19200 bps... PW needs 2,08333... ms to get transmitted
+		usleep(10000); //wait 10ms
+		
+		// usleep(2084); // Hack for 19200 bps... PW needs 2,08333... ms to get transmitted
 					// Because i have connection problems and suspect its because of timing problems...
 	}
 
@@ -600,9 +623,9 @@ int check_crc() {
  * @return true on success; exit on error
  */
 int read_info() {
-	long i, j;
+	long i;
 	char s[256];
-	FILE *fp;
+	int n = 0;
 
 ///get bootloader REVISON
 	sendcommand(REVISION);
@@ -623,23 +646,18 @@ int read_info() {
 		exit (-1);
 	}
 
-	if((fp = fopen(devices_file_p, "r")) != NULL) {
-		while(fgets(s, 256, fp)) {
-			if(sscanf(s, "%lX : %s", &j, s) == 2){ // valid entry
-				if(i == j) {
-					break;
-				}
-			}
-			*s = 0;
+	// device signature is in long i;
+	while (n < sizeof(signatures)) {
+		sprintf(s, "%lx", i);
+		if (strcmp(signatures[n], s) == 0) {
+			strcpy(s, signatures[n + 1]);
+			break;
 		}
-		fclose(fp);
-	} 
-	else {
-		sscanf ("(?)" , "%s", s);
-		if (!silent) printf("File \"%s\" not found!\n",DEVICES_FILE);
+		n += 2; // Signature and device name are stored together
+		strcpy(s, "(?)");
 	}
 
-	if (!*s) sprintf (s,"Device not in \"%s\"",DEVICES_FILE);
+	if (!strcmp(s, "(?)")) sprintf (s,"Device not known!");
 
 	if (!silent) printf("Target        : %06lX %s\n", i, s);
 
@@ -822,7 +840,5 @@ char *sptr=string;
 	*string++ = '\0';
 
 } /* cescape */
-
-
 
 /* end of file */

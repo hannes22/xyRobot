@@ -20,8 +20,8 @@
 #define  VERSION 0x0201
 
 #define  XTAL F_CPU	// 8MHz, not critical
-#define  BootDelay XTAL	// 1s
-#define  BOOTDELAY XTAL
+#define  BootDelay XTAL * 2	// 2s
+#define  BOOTDELAY XTAL * 2
 
 ;------------------------------	select UART mode -------------------------
 #if SRX == STX && SRX_PORT == STX_PORT

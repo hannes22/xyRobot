@@ -41,8 +41,8 @@
 
 int main(void) {
 
-//	twiInit();
-//	lcdInit();
+	// twiInit();
+	// lcdInit();
 	ledInit();
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
 	driveInit();
@@ -56,6 +56,7 @@ int main(void) {
     
 	while(1) {
         remoteHandler();
+        ledToggle(2);
 	}
 
 	return 0;

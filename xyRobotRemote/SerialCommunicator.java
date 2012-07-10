@@ -23,29 +23,70 @@ import javax.swing.*;
 import java.awt.*;
 
 class SerialCommunicator {
-	private String port;
 	private Remote remote;
+	private boolean opened = false;
 
-	public SerialCommunicator(String serialPort, Remote r) {
-		port = serialPort;
+	public SerialCommunicator(Remote r) {
 		remote = r;
 	}
 
-	public boolean openPort() {
+	public boolean openPort(String port) {
 		if (!HelperUtility.openPort(port)) {
-			remote.showError("Could not open port!");
+			remote.showError("Could not open port " + port + "!");
 			return false;
 		} else {
+			opened = true;
 			return true;
 		}
 	}
 
 	public void closePort() {
 		HelperUtility.closePort();
+		opened = false;
 	}
 
-	public short[] readData(int length) {
-		if (port != null) {
+	public boolean isOpen() {
+		return opened;
+	}
+
+	public String readLine() {
+		// Read until \n, return as String, with \n stripped
+		if (opened) {
+			StringBuilder ret = new StringBuilder();
+			while(true) {
+				short[] data = readData(1);
+				if ((data == null) || (data.length) != 1) {
+					remote.showError("Error while reading line!");
+					return null;
+				}
+				char c = (char)data[0];
+				if (c != '\n') {
+					ret.append(c);
+				} else {
+					return ret.toString();
+				}
+			}
+		} else {
+			return null;
+		}
+	}
+
+	public boolean writeChar(char c) {
+		int errorCount = 10;
+
+		short[] dat = new short[1];
+		dat[0] = (short)c;
+		while (errorCount > 0) {
+			if (writeData(dat, 1)) {
+				return true;
+			}
+		}
+		// We get an error message from writeData()...
+		return false;
+	}
+
+	private short[] readData(int length) {
+		if (opened) {
 			short[] tmp = HelperUtility.readData(length);
 			if ((tmp == null) || (tmp.length != length)) {
 				remote.showError("Could not read data!");
@@ -58,8 +99,8 @@ class SerialCommunicator {
 		}
 	}
 
-	public boolean writeData(short[] data, int length) {
-		if (port != null) {
+	private boolean writeData(short[] data, int length) {
+		if (opened) {
 			boolean tmp = HelperUtility.writeData(data, length);
 			if (!tmp) {
 				remote.showError("Could not write data!");

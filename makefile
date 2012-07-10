@@ -11,14 +11,13 @@
 # make extcoff = Convert ELF to AVR Extended COFF (for use with AVR Studio
 #                4.07 or greater).
 #
-# make program = Download the hex file to the device, using avrdude.  Please
-#                customize the avrdude settings below first!
 #
 # make filename.s = Just compile filename.c into the assembler code only
 #
 # To rebuild project do "make clean" then "make all".
 #
 
+#CDEFS = -D DEBUG
 
 # MCU name
 MCU = atmega2560
@@ -66,7 +65,6 @@ OPT = s
 # Native formats for AVR-GCC's -g are stabs [default], or dwarf-2.
 # AVR (extended) COFF requires stabs, plus an avr-objcopy run.
 #DEBUG = stabs
-DEBUG = 0
 
 # List any extra directories to look for include files here.
 #     Each directory must be seperated by a space.
@@ -80,9 +78,6 @@ EXTRAINCDIRS = include
 # gnu99 - c99 plus GCC extensions
 CSTANDARD = -std=gnu99
 
-# Place -D or -U options here
-CDEFS =
-
 # Place -I options here
 CINCS =
 
@@ -94,7 +89,7 @@ CINCS =
 #  -Wall...:     warning level
 #  -Wa,...:      tell GCC to pass this to the assembler.
 #    -adhlns...: create assembler listing
-CFLAGS = -g$(DEBUG)
+#CFLAGS = -g$(DEBUG)
 CFLAGS += $(CDEFS) $(CINCS)
 CFLAGS += -O$(OPT)
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
@@ -158,63 +153,28 @@ LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 
 
-
-
-# Programming support using avrdude. Settings and variables.
-
-# Programming hardware: alf avr910 avrisp bascom bsd 
-# dt006 pavr picoweb pony-stk200 sp12 stk200 stk500
-#
-# Type: avrdude -c ?
-# to get a full listing.
-#
-AVRDUDE_PROGRAMMER = stk500v2
-
-# com1 = serial port. Use lpt1 to connect to parallel port.
-AVRDUDE_PORT = com1    # programmer connected to serial device
-
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-#AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
-
-
-# Uncomment the following if you want avrdude's erase cycle counter.
-# Note that this counter needs to be initialized first using -Yn,
-# see avrdude manual.
-#AVRDUDE_ERASE_COUNTER = -y
-
-# Uncomment the following if you do /not/ wish a verification to be
-# performed after programming the device.
-#AVRDUDE_NO_VERIFY = -V
-
-# Increase verbosity level.  Please use this when submitting bug
-# reports about avrdude. See <http://savannah.nongnu.org/projects/avrdude> 
-# to submit bug reports.
-#AVRDUDE_VERBOSE = -v -v
-
-AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)
-AVRDUDE_FLAGS += $(AVRDUDE_NO_VERIFY)
-AVRDUDE_FLAGS += $(AVRDUDE_VERBOSE)
-AVRDUDE_FLAGS += $(AVRDUDE_ERASE_COUNTER)
-
-BOOTLOADERPATH = /usr/local/bin/bootloader
-BOOTLOADER = $(BOOTLOADERPATH) -d /dev/tty.SerialAdapter-DevB -b 19200 -a 0 -p
+LOADER = bootloader
+BAUD = 38400
+PORT = /dev/tty.xyRobot-DevB
 
 
 # ---------------------------------------------------------------------------
 
 # Define directories, if needed.
-DIRAVR = /usr/local/Crosspack-AVR
+DIRAVR = /usr/local/CrossPack-AVR
 DIRAVRBIN = $(DIRAVR)/bin
+DIRAVRUTILS = $(DIRAVR)/bin
+DIRINC = .
+DIRLIB = $(DIRAVR)/lib
 
 
 # Define programs and commands.
 SHELL = bash
-CC = $(DIRAVRBIN)/avr-gcc
-OBJCOPY = $(DIRAVRBIN)/avr-objcopy
-OBJDUMP = $(DIRAVRBIN)/avr-objdump
-SIZE = $(DIRAVRBIN)/avr-size
-NM = $(DIRAVRBIN)/avr-nm
-AVRDUDE = $(DIRAVRBIN)/avrdude
+CC = avr-gcc
+OBJCOPY = avr-objcopy
+OBJDUMP = avr-objdump
+SIZE = avr-size
+NM = avr-nm
 REMOVE = rm -f
 COPY = cp
 
@@ -239,6 +199,9 @@ MSG_COMPILING = Compiling:
 MSG_ASSEMBLING = Assembling:
 MSG_CLEANING = Cleaning project:
 
+
+
+
 # Define all object files.
 OBJ = $(SRC:.c=.o) $(ASRC:.S=.o) 
 
@@ -256,16 +219,10 @@ ALL_CFLAGS = -mmcu=$(MCU) -I. $(CFLAGS) $(GENDEPFLAGS)
 ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
+
+
+
 # Default target.
-boot: merge clean
-
-merge: all
-	make -C fastboot
-	cp fastboot/bootload.hex bootload.hex
-	make -C fastboot clean
-	cat $(TARGET).hex bootload.hex | awk -f merge.awk > xyRobotFull.hex
-	rm bootload.hex
-
 all: begin gccversion sizebefore build sizeafter finished end
 
 build: elf hex eep lss sym
@@ -275,6 +232,8 @@ hex: $(TARGET).hex
 eep: $(TARGET).eep
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
+
+
 
 # Eye candy.
 # AVR Studio 3.x does not check make's exit code but relies on
@@ -292,13 +251,15 @@ end:
 
 
 # Display size of file.
-HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
-ELFSIZE = $(SIZE) -A $(TARGET).elf
+HEXSIZE = $(SIZE)  --mcu=$(MCU) --target=$(FORMAT) $(TARGET).hex
+ELFSIZE = $(SIZE)  --mcu=$(MCU) -C $(TARGET).elf
 sizebefore:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_BEFORE); $(ELFSIZE); echo; fi
 
 sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
+
+
 
 # Display compiler version information.
 gccversion : 
@@ -308,7 +269,8 @@ gccversion :
 
 # Program the device.  
 program: $(TARGET).hex
-	$(BOOTLOADER) $(TARGET).hex
+	$(LOADER) -p $(TARGET).hex -b $(BAUD) -d $(PORT)
+
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.
 COFFCONVERT=$(OBJCOPY) --debugging \
@@ -317,15 +279,19 @@ COFFCONVERT=$(OBJCOPY) --debugging \
 --change-section-address .noinit-0x800000 \
 --change-section-address .eeprom-0x810000 
 
+
 coff: $(TARGET).elf
 	@echo
 	@echo $(MSG_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-avr $< $(TARGET).cof
 
+
 extcoff: $(TARGET).elf
 	@echo
 	@echo $(MSG_EXTENDED_COFF) $(TARGET).cof
 	$(COFFCONVERT) -O coff-ext-avr $< $(TARGET).cof
+
+
 
 # Create final output files (.hex, .eep) from ELF output file.
 %.hex: %.elf
@@ -351,6 +317,8 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_SYMBOL_TABLE) $@
 	$(NM) -n $< > $@
 
+
+
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
@@ -359,15 +327,18 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
 
+
 # Compile: create object files from C source files.
 %.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
 	$(CC) -c $(ALL_CFLAGS) $< -o $@ 
 
+
 # Compile: create assembler files from C source files.
 %.s : %.c
 	$(CC) -S $(ALL_CFLAGS) $< -o $@
+
 
 # Assemble: create object files from assembler source files.
 %.o : %.S
@@ -375,17 +346,15 @@ extcoff: $(TARGET).elf
 	@echo $(MSG_ASSEMBLING) $<
 	$(CC) -c $(ALL_ASFLAGS) $< -o $@
 
+
+
 # Target: clean project.
 clean: begin clean_list finished end
 
-clean_list :
-	@echo
-	@echo $(MSG_CLEANING)
-	# $(REMOVE) $(TARGET).hex
+clean_list:
 	$(REMOVE) $(TARGET).eep
 	$(REMOVE) $(TARGET).obj
 	$(REMOVE) $(TARGET).cof
-	$(REMOVE) $(TARGET).elf
 	$(REMOVE) $(TARGET).map
 	$(REMOVE) $(TARGET).obj
 	$(REMOVE) $(TARGET).a90
@@ -397,9 +366,11 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
+	$(REMOVE) $(TARGET).elf
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
+
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \

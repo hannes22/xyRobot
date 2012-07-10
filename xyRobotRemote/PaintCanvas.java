@@ -27,20 +27,26 @@ class PaintCanvas extends JPanel {
 
 	private int[][] data = null;
 	private int scale;
+	private int w;
+	private int h;
 
-	public PaintCanvas(int w, int h, int magnify) {
+	public PaintCanvas(int width, int height, int magnify) {
 		super();
-		scale = magnify - 1;
-		data = new int[(w / (scale + 1))][(h / (scale + 1))];
+		scale = magnify;
+		w = width;
+		h = height;
+		data = new int[w][h];
 	}
 
-	public void randomize() {
+	public void randomize(boolean rand) {
 		java.util.Random r = new java.util.Random();
-		int w = getWidth();
-		int h = getHeight();
-		for (int i = 0; i < (w / (scale + 1)); i++) {
-			for (int j = 0; j < (h / (scale + 1)); j++) {
-				data[i][j] = r.nextInt(256);
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				if (rand) {
+					data[i][j] = r.nextInt(256);
+				} else {
+					data[i][j] = 0;
+				}
 			}
 		}
 		repaint();
@@ -63,12 +69,10 @@ class PaintCanvas extends JPanel {
 	}
 
 	protected void paintComponent(Graphics g) {
-		int w = getWidth();
-		int h = getHeight();
-		for (int i = 0; i < (w / (scale + 1)); i++) {
-			for (int j = 0; j < (h / (scale + 1)); j++) {
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
 				g.setColor(new Color(data[i][j], data[i][j], data[i][j]));
-				g.fillRect((i * (scale + 1)), (j * (scale + 1)), (i * (scale + 1)) + scale, (j * (scale + 1)) + scale);
+				g.fillRect((i * scale), (j * scale), scale, scale);
 			}
 		}
 	}

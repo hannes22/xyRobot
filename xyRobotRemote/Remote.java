@@ -27,7 +27,7 @@ import java.io.*;
 
 public class Remote extends JFrame implements KeyListener, ActionListener {
 
-	private final String version = "0.1";
+	private final String version = "0.2";
 	private final int width = 500;
 	private final int height = 300;
 
@@ -36,10 +36,13 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 	private JComboBox portSelector = null;
 	private JButton openPort = null;
 	private JButton closePort = null;
+
+	private JPanel cameraStuff = null;
 	private JButton trigger = null;
 	private JButton save = null;
-
 	private JSlider exposure = null;
+
+	public SerialCommunicator serial = null;
 
 	public Remote() {
 		super("xyRobotRemote");
@@ -50,10 +53,9 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 		setResizable(false);
 		Container c = getContentPane();
 
-		canvas = new PaintCanvas(256, 256, 2);
+		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
 		c.add(canvas);
-		canvas.randomize();
 		canvas.addKeyListener(this);
 
 		title = new JLabel();
@@ -67,6 +69,9 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 			showError("No serial ports found!");
 			System.exit(1);
 		}
+		java.util.List<String> list = java.util.Arrays.asList(ports);
+		java.util.Collections.reverse(list);
+		ports = (String[])list.toArray();
 		portSelector = new JComboBox(ports);
 		portSelector.addKeyListener(this);
 		portSelector.setBounds(280, 35, 210, 30);
@@ -87,37 +92,74 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 		closePort.addActionListener(this);
 		c.add(closePort);
 
+		cameraStuff = new JPanel();
+		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
+		cameraStuff.setBounds(275, 105, 215, 100);
+		cameraStuff.setLayout(null);
+		cameraStuff.addKeyListener(this);
+		c.add(cameraStuff);
+
 		trigger = new JButton();
 		trigger.setText("Shoot Pic");
 		trigger.setEnabled(false);
-		trigger.setBounds(280, 105, 100, 30);
+		trigger.setBounds(5, 15, 100, 30);
 		trigger.addKeyListener(this);
 		trigger.addActionListener(this);
-		c.add(trigger);
+		cameraStuff.add(trigger);
 
 		save = new JButton();
 		save.setText("Save image");
-		save.setBounds(385, 105, 100, 30);
+		save.setBounds(110, 15, 100, 30);
 		save.addKeyListener(this);
 		save.addActionListener(this);
-		c.add(save);
+		save.setEnabled(false);
+		cameraStuff.add(save);
 
 		exposure = new JSlider(0, 1048); // Exposure time in ms
 		exposure.setMajorTickSpacing(262);
 		exposure.setMinorTickSpacing(131);
 		exposure.setEnabled(false);
-		exposure.setBounds(280, 140, 210, 40);
+		exposure.setBounds(5, 50, 205, 40);
 		exposure.createStandardLabels(262);
 		exposure.setPaintTicks(true);
 		exposure.setPaintLabels(true);
 		exposure.addKeyListener(this);
-		c.add(exposure);
+		cameraStuff.add(exposure);
 
 		setVisible(true);
+
+		serial = new SerialCommunicator(this);
+
+		// Shutdown Hook to close an opened serial port
+		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
+	}
+
+	public void setControls(boolean open) {
+		closePort.setEnabled(open);
+		openPort.setEnabled(!open);
+		trigger.setEnabled(open);
+		save.setEnabled(open);
+		exposure.setEnabled(open);
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource().equals(save)) {
+		if (e.getSource().equals(openPort)) {
+			// Open Port, enable controls
+			if (serial.openPort((String)portSelector.getSelectedItem())) {
+				if (serial.writeChar('?')) {
+					String ver = serial.readLine();
+					if (ver != null) {
+						setControls(true);
+						showInfo("Connected to " + ver);
+					}
+				}
+			}
+		} else if (e.getSource().equals(closePort)) {
+			if (serial.isOpen())
+				serial.closePort();
+			setControls(false);
+		} else if (e.getSource().equals(save)) {
+			// Render canvas into image
 			JFileChooser chooser = new JFileChooser();
 			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 				String path = chooser.getSelectedFile().getAbsolutePath();
@@ -137,7 +179,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyChar()) {
 			case 'r':
-				canvas.randomize();
+				canvas.randomize(true);
 				break;
 
 			case 'q':
@@ -146,9 +188,13 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 		}
 	}
 
-	protected void showError(String error) {
+	public void showError(String error) {
 		System.out.println(error);
 		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
+	public void showInfo(String info) {
+		JOptionPane.showMessageDialog(this, info, "Info", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public static void main (String[] args) {
@@ -157,4 +203,20 @@ public class Remote extends JFrame implements KeyListener, ActionListener {
 
 	public void keyPressed(KeyEvent e) { }
 	public void keyTyped(KeyEvent e) { }
+}
+
+class ShutdownThread implements Runnable {
+	private Remote remote = null;
+
+	public ShutdownThread(Remote r) {
+		remote = r;
+	}
+
+	public void run() {
+		if (remote.serial != null) {
+			if (remote.serial.isOpen()) {
+				remote.serial.closePort();
+			}
+		}
+	}
 }

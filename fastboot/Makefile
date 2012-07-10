@@ -35,9 +35,9 @@
 # Examples (select one of them or add your own):
 # MCU = atmega64
 # MCU = attiny85
-MCU = atmega2560
+# MCU = atmega2560
 # MCU = atmega1281
-# MCU = atmega8
+MCU = atmega2560
 
 # Name of the Atmel defs file for the actual MCU.
 #
@@ -53,9 +53,9 @@ MCU = atmega2560
 # ATMEL_INC = m168def.inc
 # ATMEL_INC=m64def.inc
 # ATMEL_INC=tn85def.inc
-ATMEL_INC = m2560def.inc
+# ATMEL_INC = m2560def.inc
 # ATMEL_INC = m1281def.inc
-# ATMEL_INC = m8def.inc
+ATMEL_INC = m2560def.inc
 
 # Processor frequency.  The value is not critical:
 #F_CPU = 14745600
@@ -74,8 +74,6 @@ STX = PE1
 SRX_PORT = PORTE
 SRX = PE0
 
-GAWK = awk
-
 ####### End user presets ######################
 
 SHELL=/bin/bash
@@ -89,7 +87,7 @@ CFLAGS += -DRAM_START=$(SRAM_START) -DSRAM_SIZE=$(SRAM_SIZE)
 CFLAGS += -DSTX_PORT=$(STX_PORT) -DSTX=$(STX)
 CFLAGS += -DSRX_PORT=$(SRX_PORT) -DSRX=$(SRX)
 
-# The following files were imported by a $(GAWK) script without user
+# The following files were imported by a gawk script without user
 # intervention (in order to ease keeping up with future releases of
 # the original bootloader):
 AUTO_CONVERTED_FILES = \
@@ -128,6 +126,9 @@ endif
 
 all: bootload.hex
 
+program: bootload.hex
+	avrdude -P /dev/tty.usbmodem641 -c stk500v2 -p ATmega2560 -V -U flash:w:bootload.hex
+
 bootload.hex: bootload.elf
 
 bootload.elf : bootload.o stub.o
@@ -163,12 +164,12 @@ else
 endif
 
 atmel_def.h: $(ATMEL_INC) Makefile
-#        We use $(GAWK) instead of egrep here due to problems with
+#        We use gawk instead of egrep here due to problems with
 #        WinAVR's egrep (which I didn't dive into):
-	./_conv.awk $< | $(GAWK) '/PAGESIZE|SIGNATURE_|SRAM_|FLASHEND|BOOT/' > $@
+	./_conv.awk $< | gawk '/PAGESIZE|SIGNATURE_|SRAM_|FLASHEND|BOOT/' > $@
 
 atmel_def.mak: atmel_def.h
-	$(GAWK) '{ printf "%s = %s\n", $$2, $$3 }' $< > $@
+	gawk '{ printf "%s = %s\n", $$2, $$3 }' $< > $@
 
 
 bootload.o: $(ASMSRC) $(ADDITIONAL_DEPENDENCIES)
@@ -191,7 +192,7 @@ clean:
 # preprocessing the asm files (bootload.gas) for debugging:
 dbg:
 	avr-cpp $(CFLAGS) -dD -E added/bootload.S > bootload.defs
-	sort bootload.defs | $(GAWK) '/^#define/' > bootload.sdefs
+	sort bootload.defs | gawk '/^#define/' > bootload.sdefs
 	avr-gcc -E $(CFLAGS) added/bootload.S -o bootload.gas
 
 
