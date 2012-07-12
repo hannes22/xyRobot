@@ -25,7 +25,7 @@ endif
 
 # All java files to be compiled
 # List so it works as target
-JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java
+JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java Registers.java
 
 # --------------------------------------
 

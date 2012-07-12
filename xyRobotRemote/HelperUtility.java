@@ -86,7 +86,7 @@ public class HelperUtility {
 				System.out.println("ERROR: " + e.toString());
 				return;
 			}
-			System.out.println("Loaded Serial Library at \"" + path + "\"");
+			// System.out.println("Loaded Serial Library at \"" + path + "\"");
 			return;
 		} catch (Exception e) {
 			System.out.println("ERROR: Failed to load Serial Library:");

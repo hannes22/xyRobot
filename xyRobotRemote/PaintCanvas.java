@@ -38,6 +38,30 @@ class PaintCanvas extends JPanel {
 		data = new int[w][h];
 	}
 
+	public void setData(short[] dat) {
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				data[i][j] = dat[j + (128 * i)];
+			}
+		}
+		repaint();
+	}
+
+	public void printData() {
+		int lineCount = 0;
+		for (int i = 0; i < 128; i++) {
+			lineCount = 0;
+			for (int j = 0; j < 128; j++) {
+				if (lineCount++ < 40) {
+					System.out.print(data[i][j] + " ");
+				} else {
+					System.out.println(data[i][j]);
+					lineCount = 0;
+				}
+			}
+		}
+	}
+
 	public void randomize(boolean rand) {
 		java.util.Random r = new java.util.Random();
 		for (int i = 0; i < w; i++) {
@@ -71,6 +95,12 @@ class PaintCanvas extends JPanel {
 	protected void paintComponent(Graphics g) {
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
+				if (data[i][j] > 255) {
+					data[i][j] = 255;
+				}
+				if (data[i][j] < 0) {
+					data[i][j] = 0;
+				}
 				g.setColor(new Color(data[i][j], data[i][j], data[i][j]));
 				g.fillRect((i * scale), (j * scale), scale, scale);
 			}

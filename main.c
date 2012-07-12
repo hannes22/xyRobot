@@ -51,6 +51,7 @@ int main(void) {
 	sei();
 
 	ledFlash();
+	serialWriteString("Initialized!\n");
 
 //	menu();
     

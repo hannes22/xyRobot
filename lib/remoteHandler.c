@@ -16,6 +16,14 @@ char versionString[] PROGMEM = "xyRobot BETA\n";
 
 void sendCamPic(void);
 
+/* Serial commands
+ *
+ * 0x80, 0x## --> Move Camera Servo Up/Down to ## Degree (from 0 to 180)
+ * 0x81, 0x## --> Move Camera Servo Left/Right to ## Degree (from 0 to 180)
+ * 0x82, 0x##1, ... 0x##8 --> Sends picture. Camera settings registers are 0x##1 to 0x##8
+ *
+ */
+
 void remoteHandler() {
 	uint8_t c;
 	if (serialHasChar()) {
@@ -28,6 +36,8 @@ void remoteHandler() {
 
 		case 'c':
 			sendCamPic();
+
+		case 0x80:
 			break;
 
 		default:

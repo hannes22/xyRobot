@@ -26,13 +26,16 @@ class SerialCommunicator {
 	private Remote remote;
 	private boolean opened = false;
 
+	public final int ERROR = -1;
+	public final int TIMEOUT = -2;
+	public int lastError = 0;
+
 	public SerialCommunicator(Remote r) {
 		remote = r;
 	}
 
 	public boolean openPort(String port) {
 		if (!HelperUtility.openPort(port)) {
-			remote.showError("Could not open port " + port + "!");
 			return false;
 		} else {
 			opened = true;
@@ -56,7 +59,6 @@ class SerialCommunicator {
 			while(true) {
 				short[] data = readData(1);
 				if ((data == null) || (data.length) != 1) {
-					remote.showError("Error while reading line!");
 					return null;
 				}
 				char c = (char)data[0];
@@ -71,9 +73,8 @@ class SerialCommunicator {
 		}
 	}
 
-	public boolean writeChar(char c) {
+	public boolean writeChar(int c) {
 		int errorCount = 10;
-
 		short[] dat = new short[1];
 		dat[0] = (short)c;
 		while (errorCount > 0) {
@@ -81,15 +82,17 @@ class SerialCommunicator {
 				return true;
 			}
 		}
-		// We get an error message from writeData()...
 		return false;
 	}
 
-	private short[] readData(int length) {
+	public short[] readData(int length) {
 		if (opened) {
 			short[] tmp = HelperUtility.readData(length);
-			if ((tmp == null) || (tmp.length != length)) {
-				remote.showError("Could not read data!");
+			if (tmp == null) {
+				lastError = TIMEOUT;
+				return null;
+			} else if (tmp.length != length) {
+				lastError = ERROR;
 				return null;
 			} else {
 				return tmp;
