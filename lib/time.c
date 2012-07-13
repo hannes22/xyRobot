@@ -1,5 +1,5 @@
 /*
- * misc.h
+ * time.c
  *
  * Copyright 2011 Thomas Buck <xythobuz@me.com>
  *
@@ -18,31 +18,32 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdlib.h>
+#include <stdint.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
-#ifndef misc_h_
-#define misc_h_
+#include <time.h>
 
-#define LCD_ADDRESS 0x42
+// Uses Timer 2!
+// Interrupt:
+// Prescaler 64
+// Count to 250
+// => 1 Interrupt per millisecond
 
-void ledInit(void);
-void ledToggle(uint8_t id);
-void ledSet(uint8_t id, uint8_t val);
-void ledFlash(void);
+volatile uint64_t systemTime = 0; // Overflows in 500 million years... :)
 
-void lcdInit(void);
-void lcdSetBackgroundLight(uint8_t status);
-void lcdFlashBackgroundLight(void);
-void lcdPutChar(char c);
-void lcdPutString(char* s);
-uint8_t lcdGetChar(void);
-uint16_t lcdGetNum(void);
+void initSystemTimer() {
+	TCCR2A |= (1 << WGM21); // CTC Mode
+	TCCR2B |= (1 << CS22); // Prescaler: 64
+	OCR2A = 250;
+	TIMSK2 |= (1 << OCIE2A); // Enable compare match interrupt
+}
 
-uint8_t *serialReadLine(void);
-uint16_t serialReadNumber(uint8_t base);
+ISR(TIMER2_COMPA_vect) {
+	systemTime++;
+}
 
-// don't free returned string...
-char *byteToString(uint8_t byte);
-char *bytesToString(uint16_t bytes);
-char *byteToHex(uint8_t byte);
-
-#endif /* MISC_H_ */
+uint64_t getSystemTime() {
+	return systemTime;
+}

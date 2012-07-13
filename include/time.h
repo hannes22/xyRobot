@@ -1,5 +1,5 @@
 /*
- * misc.h
+ * time.h
  *
  * Copyright 2011 Thomas Buck <xythobuz@me.com>
  *
@@ -19,30 +19,5 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef misc_h_
-#define misc_h_
-
-#define LCD_ADDRESS 0x42
-
-void ledInit(void);
-void ledToggle(uint8_t id);
-void ledSet(uint8_t id, uint8_t val);
-void ledFlash(void);
-
-void lcdInit(void);
-void lcdSetBackgroundLight(uint8_t status);
-void lcdFlashBackgroundLight(void);
-void lcdPutChar(char c);
-void lcdPutString(char* s);
-uint8_t lcdGetChar(void);
-uint16_t lcdGetNum(void);
-
-uint8_t *serialReadLine(void);
-uint16_t serialReadNumber(uint8_t base);
-
-// don't free returned string...
-char *byteToString(uint8_t byte);
-char *bytesToString(uint16_t bytes);
-char *byteToHex(uint8_t byte);
-
-#endif /* MISC_H_ */
+void initSystemTimer(void);
+uint64_t getSystemTime(void);

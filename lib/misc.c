@@ -29,10 +29,14 @@
 #include <twi.h>
 #include <serial.h>
 
-char string[8];
-
 // First bit: Background light status
 uint8_t lcdStatus;
+uint8_t lcdCharsSent = 0;
+
+#define CHARSTOSEND 10
+#define TIMETOWAIT 100
+
+extern char buffer[64];
 
 void ledInit() {
     DDRA |= (1 << DDA7) | (1 << DDA6);
@@ -136,6 +140,7 @@ void lcdPutChar(char c) {
 void lcdPutString(char* data) {
 	twiStartWait(LCD_ADDRESS+I2C_WRITE);
 	while(*data != '\0') {
+		lcdCharsSent++;
 		if (*data != '\r') {
 			if (*data == '\n') {
 				twiWrite('\r');
@@ -147,8 +152,13 @@ void lcdPutString(char* data) {
 		} else {
 			data++;
 		}
+		_delay_ms(20); // Wait for lcd
 	}
 	twiStop();
+	if (lcdCharsSent >= CHARSTOSEND) {
+		lcdCharsSent = 0;
+		_delay_ms(TIMETOWAIT);
+	}
 }
 
 uint8_t lcdGetChar(void) {
@@ -191,14 +201,43 @@ uint16_t lcdGetNum(void) {
 	return ret;
 }
 
+uint8_t *serialReadLine(void) {
+	uint8_t ptr = 0;
+	while(1) {
+		if (serialHasChar()) {
+			buffer[ptr] = serialGet();
+			serialWrite(buffer[ptr]);
+			if ((buffer[ptr] == '\n') || (ptr == sizeof(buffer) - 1)) {
+				buffer[ptr] = '\0';
+				return (uint8_t *)buffer;
+			}
+			if (buffer[ptr] != '\r') {
+				// ignore carriage return (\r)
+				if (buffer[ptr] == 8) {
+					// handle backspace
+					ptr--;
+				} else {
+					ptr++;
+				}
+			}
+		}
+	}
+}
+
+uint16_t serialReadNumber(uint8_t base) {
+	uint8_t *s = serialReadLine();
+	uint16_t val = (uint16_t)strtoul((char *)s, NULL, base);
+	return val;
+}
+
 char *byteToString(uint8_t byte) {
     return bytesToString((uint16_t)byte);
 }
 
 char *bytesToString(uint16_t bytes) {
-	return utoa(bytes, string, 10);
+	return utoa(bytes, buffer, 10);
 }
 
 char *byteToHex(uint8_t byte) {
-	return utoa(byte, string, 16);
+	return utoa(byte, buffer, 16);
 }

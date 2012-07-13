@@ -49,6 +49,17 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 	private JSlider camMoveY = null;
 	private JButton camSettings = null;
 
+	private JPanel driveStuff = null;
+	private JTextField dist = null;
+	private JLabel distCM = null;
+	private JTextField speed = null;
+	private JCheckBox reverse = null;
+	private JButton drive = null;
+	private JTextField degree = null;
+	private JLabel degreeDeg = null;
+	private JButton turnRight = null;
+	private JButton turnLeft = null;
+
 	public SerialCommunicator serial = null;
 
 	private final int UP    = 0;
@@ -128,7 +139,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 
 		closePort = new JButton();
 		closePort.setText("Close");
-		closePort.setEnabled(false);
 		closePort.setBounds(105, 55, 100, 30);
 		closePort.addKeyListener(this);
 		closePort.addActionListener(this);
@@ -143,7 +153,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 
 		trigger = new JButton();
 		trigger.setText("Shoot Pic");
-		trigger.setEnabled(false);
 		trigger.setBounds(60, 15, 140, 30);
 		trigger.addKeyListener(this);
 		trigger.addActionListener(this);
@@ -152,7 +161,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		camSettings = new JButton();
 		camSettings.setText("Cam Registers");
 		camSettings.setBounds(60, 50, 140, 30);
-		camSettings.setEnabled(false);
 		camSettings.addKeyListener(this);
 		camSettings.addActionListener(this);
 		cameraStuff.add(camSettings);
@@ -162,11 +170,9 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		save.setBounds(60, 85, 140, 30);
 		save.addKeyListener(this);
 		save.addActionListener(this);
-		save.setEnabled(false);
 		cameraStuff.add(save);
 
 		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 90); // vertical cam movement slider
-		camMoveY.setEnabled(false);
 		camMoveY.setBounds(5, 15, 60, 205);
 		camMoveY.addKeyListener(this);
 		camMoveY.addChangeListener(this);
@@ -181,7 +187,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		cameraStuff.add(camMoveY);
 
 		camMoveX = new JSlider(0, 180);
-		camMoveX.setEnabled(false);
 		camMoveX.setBounds(40, 120, 170, 60);
 		camMoveX.addKeyListener(this);
 		camMoveX.addChangeListener(this);
@@ -195,6 +200,70 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		camMoveX.setPaintLabels(true);
 		cameraStuff.add(camMoveX);
 
+		driveStuff = new JPanel();
+		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
+		driveStuff.setBounds(275, 330, 215, 100);
+		driveStuff.setLayout(null);
+		driveStuff.addKeyListener(this);
+		c.add(driveStuff);
+
+		dist = new JTextField();
+		dist.setText("100");
+		dist.setBounds(5, 20, 40, 30);
+		dist.addKeyListener(this);
+		driveStuff.add(dist);
+
+		distCM = new JLabel();
+		distCM.setText("cm");
+		distCM.setBounds(45, 20, 20, 30);
+		distCM.addKeyListener(this);
+		driveStuff.add(distCM);
+
+		speed = new JTextField();
+		speed.setText("200");
+		speed.setBounds(70, 20, 40, 30);
+		speed.addKeyListener(this);
+		driveStuff.add(speed);
+
+		reverse = new JCheckBox();
+		reverse.setBounds(115, 20, 30, 30);
+		reverse.addKeyListener(this);
+		driveStuff.add(reverse);
+
+		drive = new JButton();
+		drive.setText("Drive");
+		drive.setBounds(150, 20, 60, 30);
+		drive.addKeyListener(this);
+		drive.addActionListener(this);
+		driveStuff.add(drive);
+
+		degree = new JTextField();
+		degree.setText("180");
+		degree.setBounds(15, 55, 40, 30);
+		degree.addKeyListener(this);
+		driveStuff.add(degree);
+
+		degreeDeg = new JLabel();
+		degreeDeg.setText("\u00b0");
+		degreeDeg.setBounds(55, 55, 30, 30);
+		degreeDeg.addKeyListener(this);
+		driveStuff.add(degreeDeg);
+
+		turnLeft = new JButton();
+		turnLeft.setText("L");
+		turnLeft.setBounds(80, 55, 50, 30);
+		turnLeft.addKeyListener(this);
+		turnLeft.addActionListener(this);
+		driveStuff.add(turnLeft);
+
+		turnRight = new JButton();
+		turnRight.setText("R");
+		turnRight.setBounds(135, 55, 50, 30);
+		turnRight.addKeyListener(this);
+		turnRight.addActionListener(this);
+		driveStuff.add(turnRight);
+
+		setControls(false); // Turn everything off
 		setVisible(true);
 
 		serial = new SerialCommunicator(this);
@@ -217,14 +286,46 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		camMoveX.setEnabled(open);
 		camMoveY.setEnabled(open);
 		camSettings.setEnabled(open);
+		drive.setEnabled(open);
+		reverse.setEnabled(open);
+		speed.setEnabled(open);
+		dist.setEnabled(open);
+		degree.setEnabled(open);
+		turnRight.setEnabled(open);
+		turnLeft.setEnabled(open);
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource().equals(camSettings)) {
+		if ((e.getSource().equals(turnRight)) || (e.getSource().equals(turnLeft))) {
+			serial.writeChar(0x84); // command, degree, dir
+			serial.writeChar((char)Integer.valueOf(degree.getText(), 10).intValue());
+			String temp = "";
+			if (e.getSource().equals(turnRight)) {
+				serial.writeChar(1);
+				temp = "Right";
+			} else {
+				serial.writeChar(0);
+				temp = "Left";
+			}
+			log("Turning " + degree.getText() + "\u00b0 " + temp);
+		} else if (e.getSource().equals(drive)) {
+			serial.writeChar(0x83); // command, dist, speed, dir
+			serial.writeChar((char)Integer.valueOf(dist.getText(), 10).intValue());
+			serial.writeChar((char)Integer.valueOf(speed.getText(), 10).intValue());
+			String temp = "";
+			if (reverse.isSelected()) {
+				temp = "Reverse";
+				serial.writeChar(0);
+			} else {
+				serial.writeChar(1);
+				temp = "Forward";
+			}
+			log("Driving " + dist.getText() + "cm with " + speed.getText() + " " + temp);
+		} else if (e.getSource().equals(camSettings)) {
 			Registers reg = new Registers(this, registers);
 			reg.setVisible(true);
 		} else if (e.getSource().equals(trigger)) {
-			serial.writeChar('c');
+			serial.writeChar(0x82); // Get pic command
 			log("Writing registers.");
 			for (int i = 0; i < 8; i++) {
 				serial.writeChar(registers[i]);

@@ -103,18 +103,15 @@ uint8_t serialHasChar() {
 
 uint8_t serialGet() {
 	uint8_t c;
-	if (rxRead != rxWrite) {
-		c = rxBuffer[rxRead];
-		rxBuffer[rxRead] = 0;
-		if (rxRead < (RX_BUFFER_SIZE - 1)) {
-			rxRead++;
-		} else {
-			rxRead = 0;
-		}
-		return c;
+	while(rxRead == rxWrite);
+	c = rxBuffer[rxRead];
+	rxBuffer[rxRead] = 0;
+	if (rxRead < (RX_BUFFER_SIZE - 1)) {
+		rxRead++;
 	} else {
-		return 0;
+		rxRead = 0;
 	}
+	return c;
 }
 
 uint8_t serialBufferSpaceRemaining() {
