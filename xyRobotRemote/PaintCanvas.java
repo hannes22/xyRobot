@@ -47,6 +47,16 @@ class PaintCanvas extends JPanel {
 		repaint();
 	}
 
+	public void setDataSmall(short[] dat) {
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j += 2) {
+				data[i][j] = (dat[(j / 2) + (64 * i)] & 0xF0) + 0x0F;
+				data[i][j + 1] = ((dat[(j / 2) + (64 * i)] & 0x0F) << 4) + 0x0F;
+			}
+		}
+		repaint();
+	}
+
 	public void printData() {
 		int lineCount = 0;
 		for (int i = 0; i < 128; i++) {

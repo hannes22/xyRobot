@@ -48,6 +48,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 	private JSlider camMoveX = null;
 	private JSlider camMoveY = null;
 	private JButton camSettings = null;
+	private JButton fastTest = null;
 
 	private JPanel driveStuff = null;
 	private JTextField dist = null;
@@ -172,6 +173,13 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		save.addActionListener(this);
 		cameraStuff.add(save);
 
+		fastTest = new JButton();
+		fastTest.setText("Fast Shoot");
+		fastTest.setBounds(60, 120, 140, 30);
+		fastTest.addActionListener(this);
+		fastTest.addKeyListener(this);
+		cameraStuff.add(fastTest);
+
 		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 90); // vertical cam movement slider
 		camMoveY.setBounds(5, 15, 60, 205);
 		camMoveY.addKeyListener(this);
@@ -182,7 +190,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		cameraStuff.add(camMoveY);
 
 		camMoveX = new JSlider(0, 180);
-		camMoveX.setBounds(60, 120, 160, 60);
+		camMoveX.setBounds(60, 165, 150, 60);
 		camMoveX.addKeyListener(this);
 		camMoveX.addChangeListener(this);
 		camMoveX.setMajorTickSpacing(45);
@@ -283,10 +291,20 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		degree.setEnabled(open);
 		turnRight.setEnabled(open);
 		turnLeft.setEnabled(open);
+		fastTest.setEnabled(open);
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if ((e.getSource().equals(turnRight)) || (e.getSource().equals(turnLeft))) {
+		if (e.getSource().equals(fastTest)) {
+			serial.writeChar(0x85); // Get fast pic command
+			log("Writing registers.");
+			for (int i = 0; i < 8; i++) {
+				serial.writeChar(registers[i]);
+			}
+			log("Getting picture data");
+			canvas.setDataSmall(serial.readData((128 * 128) / 2));
+			log("Done!");
+		} else if ((e.getSource().equals(turnRight)) || (e.getSource().equals(turnLeft))) {
 			serial.writeChar(0x84); // command, degree, dir
 			serial.writeChar((char)Integer.valueOf(degree.getText(), 10).intValue());
 			String temp = "";

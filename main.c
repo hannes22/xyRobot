@@ -71,6 +71,7 @@ void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
 void sendCamPic(void);
+void sendFastCamPic(void);
 
 int main(void) {
 
@@ -217,6 +218,7 @@ void menuHandler() {
  * 0x82, r1 ... r8			--> Sends picture. Camera settings registers are r1 to r8
  * 0x83, dist, speed, dir	--> Drive dist cm with speed speed, dir 1 = Forward, 0 = backward
  * 0x84, degree, dir		--> Turn. Dir 1 = right, 0 = left
+ * 0x85, r1 ... r8			--> Send picture, but use only 4bit per pixel!
  *
  * default					--> Send revieced character back
  */
@@ -313,6 +315,10 @@ void remoteHandler() {
 			turn(temp, temp2);
 			break;
 
+		case 0x85:
+			sendFastCamPic();
+			break;
+
 		default:
 			serialWrite(c);
 			break;
@@ -332,6 +338,25 @@ void sendCamPic() {
 	// Transmit all the bytes...
 	for (i = 0; i < 16384; i++) {
 		serialWrite(camGetByte());
+	}
+	camReset();
+}
+
+void sendFastCamPic() {
+	uint16_t i = 0;
+	uint8_t reg[8];
+	uint8_t a, b;
+	while (i < 8) {
+		while (!serialHasChar());
+		reg[i++] = serialGet();
+	}
+
+	camInit(reg);
+	// Transmit all the bytes...
+	for (i = 0; i < 8192; i++) {
+		a = camGetByte();
+		b = camGetByte();
+		serialWrite((a & 0xF0) | ((b & 0xF0) >> 4));
 	}
 	camReset();
 }
