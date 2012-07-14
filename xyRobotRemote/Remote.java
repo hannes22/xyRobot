@@ -178,26 +178,16 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		camMoveY.addChangeListener(this);
 		camMoveY.setMajorTickSpacing(45);
 		camMoveY.setMinorTickSpacing(45);
-		java.util.Hashtable<Integer, JLabel> labelTable = new java.util.Hashtable<Integer, JLabel>();
-		labelTable.put(new Integer(0), new JLabel("Down"));
-		labelTable.put(new Integer(180), new JLabel("Up"));
-		camMoveY.setLabelTable(labelTable);
 		camMoveY.setPaintTicks(true);
-		camMoveY.setPaintLabels(true);
 		cameraStuff.add(camMoveY);
 
 		camMoveX = new JSlider(0, 180);
-		camMoveX.setBounds(40, 120, 170, 60);
+		camMoveX.setBounds(60, 120, 160, 60);
 		camMoveX.addKeyListener(this);
 		camMoveX.addChangeListener(this);
 		camMoveX.setMajorTickSpacing(45);
 		camMoveX.setMinorTickSpacing(45);
-		labelTable = new java.util.Hashtable<Integer, JLabel>();
-		labelTable.put(new Integer(0), new JLabel("Left"));
-		labelTable.put(new Integer(180), new JLabel("Right"));
-		camMoveX.setLabelTable(labelTable);
 		camMoveX.setPaintTicks(true);
-		camMoveX.setPaintLabels(true);
 		cameraStuff.add(camMoveX);
 
 		driveStuff = new JPanel();
@@ -394,7 +384,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
 				// New X-Axis position
 				serial.writeChar(0x81);
-				serial.writeChar(camMoveX.getValue());
+				serial.writeChar(180 - camMoveX.getValue());
 			}
 		}
 	}

@@ -61,8 +61,6 @@ void motorInit() {
 
 	EICRB |= (1 << ISC61) | (1 << ISC60) | (1 << ISC71) | (1 << ISC70); // Rising Edge...
 	EIMSK |= (1 << INT7) | (1 << INT6); // ...activates Interrupts
-
-	ledInit();
 }
 
 // Adjust motor speed directly in the timer registers.
@@ -130,7 +128,7 @@ ISR(INT6_vect) { // Right Encoder
             ledSet(1, 0);
         }
     }
-	calcDiff();
+	calcDiff(); // Adjust for slightly different motor speed
 }
 
 ISR(INT7_vect) { // Left Encoder

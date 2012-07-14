@@ -40,7 +40,7 @@ uint16_t lcdGetNum(void);
 uint8_t *serialReadLine(void);
 uint16_t serialReadNumber(uint8_t base);
 
-// don't free returned string...
+// Uses buffer[] as return value.
 char *byteToString(uint8_t byte);
 char *bytesToString(uint16_t bytes);
 char *byteToHex(uint8_t byte);

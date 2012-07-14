@@ -33,9 +33,9 @@
 #define CAMREAD PA0
 #define CAMOUT 11
 
-void camInit(uint8_t *regs); // Shoots a picture. No need to call camShoot directly afterwards...
-void camShoot(void);
-uint8_t camCanRead(void);
+void camInitPorts(void);
+
+void camInit(uint8_t *regs); // Shoots a picture
 uint8_t camGetByte(void);
 void camReset(void);
 

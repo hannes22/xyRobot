@@ -31,6 +31,9 @@ JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.j
 
 all: xyRobotRemote.jar
 
+run: xyRobotRemote.jar
+	java -jar xyRobotRemote$(PLATFORM).jar
+
 doc: doc/index.html
 
 xyRobotRemote.jar: HelperUtility.class manifest.txt libSerial

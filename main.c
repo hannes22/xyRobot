@@ -51,6 +51,11 @@ char buffer[128]; // Used as global string buffer
 char versionString[] PROGMEM = "xyRobot BETA\n";
 
 #define MENUMSGS 5
+#define MENU0 0
+#define MENU1 1
+#define MENU2 2
+#define MENU3 3
+#define MENU4 4
 char messageA[] PROGMEM = "\nxyRobot Beta";
 char messageB[] PROGMEM = "\n1) Driving";
 char messageC[] PROGMEM = "\n2) Camera";
@@ -60,39 +65,35 @@ PGM_P menuMessages[MENUMSGS] PROGMEM = { messageA, messageB, messageC, messageD,
 
 char nextPageString[] PROGMEM = "\n0) Next page";
 
-// Function pointers for messages. Heading is not selectable
-void (*menuFunctions[MENUMSGS])(void) = { NULL, NULL, NULL, NULL, NULL };
+uint8_t page = 0, menu = MENU0;
 
-uint8_t page = 0;
-
-void printMenu(void);
+void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
 void sendCamPic(void);
 
 int main(void) {
 
-	uint64_t time;
-
 	ledInit();
-	ledToggle(0);
-	ledToggle(1);
 	ledToggle(2);
-	driveInit();
-	_delay_ms(250);
-	
+
+	// driveInit();
+	// --> rotateInit() and motorInit()
+	motorInit();
+
 	twiInit();
 	lcdInit();
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
 	adcInit();
-	initSystemTimer();
-	ledToggle(0);
-	ledToggle(1);
+	camInitPorts();
+
+	// initSystemTimer(); // Not used. Heavy cpu usage...
+
 	ledToggle(2);
 
 	sei();
 
-	printMenu(); // Print Menu for the first time
+	printMenu(MENU0); // Print Menu for the first time
 
 	serialWriteString("Initialized!\n");
 
@@ -100,59 +101,110 @@ int main(void) {
 
 		menuHandler();
 		remoteHandler();
-
-		/* time = getSystemTime();
-		if ((time % 1000) == 0) {} */
 	}
 	return 0;
 }
 
-void printMenu() {
-	if ((page * 3) < MENUMSGS) {
-		strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[page * 3])));
+void printMenu(uint8_t menu) {
+	if (menu == MENU0) {
+		if ((page * 3) < MENUMSGS) {
+			strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[page * 3])));
+			lcdPutString(buffer);
+		}
+		if (((page * 3) + 1) < MENUMSGS) {
+			strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 1])));
+			lcdPutString(buffer);
+		} else {
+			lcdPutString("\n");
+		}
+		if (((page * 3) + 2) < MENUMSGS) {
+			strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 2])));
+			lcdPutString(buffer);
+		} else {
+			lcdPutString("\n");
+		}
+		strcpy_P(buffer, nextPageString);
 		lcdPutString(buffer);
+	} else if (menu == MENU1) {
+		// Driving
+		lcdPutString("\n1) Forwards\n2) Backwards\n3) Turn\n0) Main Menu");
+	} else if (menu == MENU2) {
+		// Camera
+	} else if (menu == MENU3) {
+		// Bluetooth
+	} else if (menu == MENU4) {
+		// Servos
+		lcdPutString("\n1) Left-Right\n2) Up-Down\n\n0) Main Menu");
 	}
-	if (((page * 3) + 1) < MENUMSGS) {
-		strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 1])));
-		lcdPutString(buffer);
-	} else {
-		lcdPutString("\n");
-	}
-	if (((page * 3) + 2) < MENUMSGS) {
-		strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[(page * 3) + 2])));
-		lcdPutString(buffer);
-	} else {
-		lcdPutString("\n");
-	}
-	strcpy_P(buffer, nextPageString);
-	lcdPutString(buffer);
 }
 
 void menuHandler() {
 	uint16_t c = lcdGetChar();
 	uint8_t temp, i = 0;
-	if (c == '0') {
-		if ((MENUMSGS / 3) > page) { // There are more entries
-			page++;
-		} else {
-			page = 0;
-		}
-		printMenu();
-	} else if ((c != '?') && (c != '*') && (c != '#') && (c != 0)) {
-		c -= '0';
-		if (((page * 3) + 2) > 9) {
-			// the number the user has to enter is smaller
-			temp = (page * 3) + 2;
-			while (temp > 9) {
-				temp -= 10;
-				i++;
+	if (menu == MENU0) {
+		if (c == '0') {
+			if ((MENUMSGS / 3) > page) { // There are more entries
+				page++;
+			} else {
+				page = 0;
 			}
-			c += (i * 10);
-		}
-		if (c < MENUMSGS) {
-			if (menuFunctions[c] != NULL) {
-				(*menuFunctions[c])();
+			printMenu(menu);
+		} else if ((c != '?') && (c != '*') && (c != '#') && (c != 0)) {
+			c -= '0';
+			if (((page * 3) + 2) > 9) {
+				// the number the user has to enter is smaller
+				temp = (page * 3) + 2;
+				while (temp > 9) {
+					temp -= 10;
+					i++;
+				}
+				c += (i * 10);
 			}
+			if (c < MENUMSGS) {
+				menu = c;
+				printMenu(menu);
+			}
+		}
+	} else if (menu == MENU1) {
+		// Driving
+		if (c == '0') {
+			menu = MENU0;
+			printMenu(menu);
+		} else if ((c == '1') || (c == '2')) {
+			lcdPutString("\nDistance?");
+			temp = lcdGetNum();
+			lcdPutString("\nSpeed?");
+			if (c == '1') {
+				drive(temp, (uint8_t)lcdGetNum(), FORWARD);
+			} else {
+				drive(temp, (uint8_t)lcdGetNum(), BACKWARD);
+			}
+			printMenu(menu);
+		} else if (c == '3') {
+			lcdPutString("\nDegrees?");
+			c = lcdGetNum();
+			lcdPutString("\n1=Left  2=Right");
+			temp = lcdGetNum();
+			if (temp == 1) {
+				turn(c, LEFT);
+			} else {
+				turn(c, RIGHT);
+			}
+			printMenu(menu);
+		}
+	} else if (menu == MENU2) {
+		// Camera
+	} else if (menu == MENU3) {
+		// Bluetooth
+	} else if (menu == MENU4) {
+		// Servos
+		if (c == '0') {
+			menu = MENU0;
+			printMenu(menu);
+		} else if (c == '1') {
+			rotateLeftRight(lcdGetNum());
+		} else if (c == '2') {
+			rotateUpDown(lcdGetNum());
 		}
 	}
 }
@@ -169,8 +221,8 @@ void menuHandler() {
  * default					--> Send revieced character back
  */
 
-uint8_t upDownPos = UD_CENTER;
-uint8_t leftRightPos = LR_CENTER;
+uint8_t upDownPos = 90;
+uint8_t leftRightPos = 90;
 
 void remoteHandler() {
 	uint8_t c;
@@ -182,6 +234,42 @@ void remoteHandler() {
 		case '?':
 			strcpy_P(buffer, versionString);
 			serialWriteString(buffer);
+			break;
+
+		case 'w':
+			if (upDownPos <= 175) {
+				upDownPos += 5;
+			}
+			serialWriteString(byteToString(upDownPos));
+			serialWrite('\n');
+			rotateUpDown(upDownPos);
+			break;
+
+		case 's':
+			if (upDownPos >= 5) {
+				upDownPos -= 5;
+			}
+			serialWriteString(byteToString(upDownPos));
+			serialWrite('\n');
+			rotateUpDown(upDownPos);
+			break;
+
+		case 'd':
+			if (leftRightPos <= 175) {
+				leftRightPos += 5;
+			}
+			serialWriteString(byteToString(leftRightPos));
+			serialWrite('\n');
+			rotateLeftRight(leftRightPos);
+			break;
+
+		case 'a':
+			if (leftRightPos >= 5) {
+				leftRightPos -= 5;
+			}
+			serialWriteString(byteToString(leftRightPos));
+			serialWrite('\n');
+			rotateLeftRight(leftRightPos);
 			break;
 
 		case 0x80:

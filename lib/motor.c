@@ -39,65 +39,96 @@
 #endif
 #endif
 
-#include <util/delay.h>
+volatile uint8_t servoLeftRight = CENTER;
+volatile uint8_t servoUpDown = MIDDLE;
 
 void driveInit() {
-    motorInit();
-    rotateInit();
-    rotateLeftRight(LR_CENTER);
-    rotateUpDown(UD_CENTER);
+	motorInit();
+	rotateInit();
 }
 
 void rotateInit() {
-	// 8-bit Counter
-	TCCR0A |= (1 << WGM00) | (1 << WGM01); // Fast PWM. Top = 0xFF
-	TCCR0A |= (1 << COM0A1) | (1 << COM0B1); // Non inverting mode
-	TCCR0B |= (1 << CS02) | (1 << CS00); // Prescaler 1024 => roughly 20ms per round
+	// 8-bit Counter, CTC Mode, Prescaler 1, count to 160 --> ISR every 10 microseconds
+	TCCR0A |= (1 << WGM01); // CTC Mode
+	TCCR0B |= (1 << CS00); // Prescaler: 1
+	OCR0A = 160;
+	TIMSK0 |= (1 << OCIE0A); // Enable compare match interrupt
 
 	UPDOWNDDR |= (1 << UPDOWNSERVO);
 	LEFTRIGHTDDR |= (1 << LEFTRIGHTSERVO);
+
+	UPDOWNPORT &= ~(1 << UPDOWNSERVO);
+	LEFTRIGHTPORT &= ~(1 << LEFTRIGHTSERVO);
 }
 
-void rotateUpDown(uint8_t pos) {
-	uint16_t mid = pos * 15;
-	UPDOWNREG = ((uint8_t)(mid / 256)) + 16;
+ISR(TIMER0_COMPA_vect) {
+	static uint16_t count1, count2;
+
+	if (count1 > servoLeftRight) {
+		LEFTRIGHTPORT &= ~(1 << LEFTRIGHTSERVO);
+	} else {
+		LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
+	}
+	if (count1 < 2000) { // 20ms
+		count1++;
+	} else {
+		count1 = 0;
+	}
+
+	if (count2 > servoUpDown) {
+		UPDOWNPORT &= ~(1 << UPDOWNSERVO);
+	} else {
+		UPDOWNPORT |= (1 << UPDOWNSERVO);
+	}
+	if (count2 < 2000) { // 20ms
+		count2++;
+	} else {
+		count2 = 0;
+	}
 }
 
 void rotateLeftRight(uint8_t pos) {
-	uint16_t mid = pos * 15;
-	LEFTRIGHTREG = ((uint8_t)(mid / 256)) + 16;
+	uint16_t tmp = pos * 83;
+	tmp /= 100;
+	servoLeftRight = 50 + tmp;
+}
+
+void rotateUpDown(uint8_t pos) {
+	uint16_t tmp = pos * 83;
+	tmp /= 100;
+	servoUpDown = 50 + tmp;
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {
 
 #ifdef CMPERTICK
-    uint16_t ticks = cm / CMPERTICK;
-    if (cm % CMPERTICK != 0) {
-        ticks++;
-    }
-    motorTicks(ticks, ticks);
+	uint16_t ticks = cm / CMPERTICK;
+	if (cm % CMPERTICK != 0) {
+		ticks++;
+	}
+	motorTicks(ticks, ticks);
 #endif
 #ifdef TICKSPERCM
-    motorTicks((cm * TICKSPERCM), (cm * TICKSPERCM));
+	motorTicks((cm * TICKSPERCM), (cm * TICKSPERCM));
 #endif
-    
-    motorDirection(dir);
-    motorSpeed(speed, speed);
+	
+	motorDirection(dir);
+	motorSpeed(speed, speed);
 }
 
 void turn(uint16_t degree, uint8_t dir) {
-    uint16_t cm = 0;
-    while (degree > 360) {
-        degree -= 360;
-    }
-    if (degree != 0) {
-        cm = 3 * WHEELDISTANCE * degree; // pi * d * deg/360 = distance to drive
-        cm = cm / 360;
-    }
-    
-    drive(cm, TURNSPEED, dir);
+	uint16_t cm = 0;
+	while (degree > 360) {
+		degree -= 360;
+	}
+	if (degree != 0) {
+		cm = 3 * WHEELDISTANCE * degree; // pi * d * deg/360 = distance to drive
+		cm = cm / 360;
+	}
+	
+	drive(cm, TURNSPEED, dir);
 }
 
 uint8_t driveDone(void) {
-    return motorDone();
+	return motorDone();
 }

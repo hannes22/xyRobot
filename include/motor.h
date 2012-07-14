@@ -29,8 +29,10 @@
 #define LEFT 4
 
 // Servo positions
-#define LR_CENTER 100
-#define UD_CENTER 0
+#define CENTER 130
+#define LR_CENTER CENTER
+#define MIDDLE 80
+#define UD_CENTER MIDDLE
 
 #define TURNSPEED 128
 // define one, not both
@@ -38,14 +40,13 @@
 // #define TICKSPERCM 1
 // distance between wheels in cm
 #define WHEELDISTANCE 20
+
 #define UPDOWNSERVO PB7
 #define UPDOWNPORT PORTB
 #define UPDOWNDDR DDRB
 #define LEFTRIGHTSERVO PG5
 #define LEFTRIGHTPORT PORTG
 #define LEFTRIGHTDDR DDRG
-#define LEFTRIGHTREG OCR0B
-#define UPDOWNREG OCR0A
 
 void driveInit(void);
 // dir = FORWARD or BACKWARD
@@ -55,7 +56,7 @@ void turn(uint16_t degree, uint8_t dir);
 uint8_t driveDone(void);
 
 void rotateInit(void);
-void rotateUpDown(uint8_t pos);
+void rotateUpDown(uint8_t pos); // From 0 to 180
 void rotateLeftRight(uint8_t pos);
 
 #endif

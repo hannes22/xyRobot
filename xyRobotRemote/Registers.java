@@ -71,6 +71,9 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JButton convertToRaw = null;
 	private JButton convertToNice = null;
 	private JTextArea tutorial = null;
+	private JButton default1 = null;
+
+	private final int defaultData[] = { 0x80, 0x04, 0x06, 0x00, 0x01, 0x00, 0x01, 0x03 };
 
 	public Registers(Remote f, int[] regs) {
 		this(f);
@@ -96,7 +99,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		setResizable(false);
 
 		tutorial = new JTextArea();
-		tutorial.setBounds(210, 270, 225, 150);
+		tutorial.setBounds(210, 270, 225, 145);
 		tutorial.setEditable(false);
 		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
 		tutorial.insert(" After closing this window, the\n values on the right"
@@ -116,6 +119,12 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		convertToNice.setBounds(195, 145, 60, 30);
 		convertToNice.addActionListener(this);
 		add(convertToNice);
+
+		default1 = new JButton();
+		default1.setText("Def");
+		default1.setBounds(195, 200, 60, 30);
+		default1.addActionListener(this);
+		add(default1);
 
 		regView = new JPanel();
 		regView.setBorder(BorderFactory.createLoweredBevelBorder());
@@ -553,7 +562,10 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource().equals(convertToNice)) {
+		if (e.getSource().equals(default1)) {
+			setRegFields(defaultData);
+			convertValsToSettings();
+		} else if (e.getSource().equals(convertToNice)) {
 			convertValsToSettings();
 		} else if (e.getSource().equals(convertToRaw)) {
 			convertSettingsToVals();

@@ -44,6 +44,10 @@ ISR(TIMER2_COMPA_vect) {
 	systemTime++;
 }
 
-uint64_t getSystemTime() {
+uint64_t getSystemTimeMilli(void) {
 	return systemTime;
+}
+
+uint64_t getSystemTimeSeconds(void) {
+	return systemTime / 1000;
 }

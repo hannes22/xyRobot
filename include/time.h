@@ -20,4 +20,6 @@
  */
 
 void initSystemTimer(void);
-uint64_t getSystemTime(void);
+uint64_t getSystemTimeMicro(void);
+uint64_t getSystemTimeMilli(void);
+uint64_t getSystemTimeSeconds(void);

@@ -27,12 +27,13 @@
 #include <adc.h>
 #include <cam.h>
 #include <misc.h>
-#include <time.h>
 
 #define CAMDELAY 1
 
+void camShoot(void);
+
 void setClock(uint8_t load) {
-	_delay_us(CAMDELAY);
+	_delay_us(2);
 	if (load == 1) {
 		CAMPORT |= (1 << CAMCLOCK);
 	}
@@ -44,15 +45,13 @@ void setClock(uint8_t load) {
 	if (load == 2) {
 		CAMPORT ^= (1 << CAMCLOCK);
 	}
-	_delay_us(CAMDELAY);
 }
 
 void reset(void) {
-	setClock(0);
 	CAMPORT &= ~(1 << CAMRESET);
-	_delay_us(CAMDELAY);
 	setClock(1);
 	CAMPORT |= (1 << CAMRESET);
+	setClock(0);
 }
 
 void sendBit(uint8_t bit, uint8_t load) {
@@ -65,9 +64,7 @@ void sendBit(uint8_t bit, uint8_t load) {
 	if (load != 0) {
 		CAMPORT |= (1 << CAMLOAD);
 	}
-	_delay_us(CAMDELAY);
 	setClock(0);
-	_delay_us(CAMDELAY);
 	CAMPORT &= ~(1 << CAMLOAD);
 }
 
@@ -89,7 +86,6 @@ void setRegisters(uint8_t *regs) {
 void camStart(void) {
 	CAMPORT |= (1 << CAMSTART);
 	setClock(1);
-	_delay_us(CAMDELAY);
 	CAMPORT &= ~(1 << CAMSTART);
 	setClock(0);
 }
@@ -97,9 +93,7 @@ void camStart(void) {
 void camWait(void) {
 	while ((CAMPIN & (1 << CAMREAD)) == 0) {
 		setClock(1);
-		_delay_us(CAMDELAY);
 		setClock(0);
-		_delay_us(CAMDELAY);
 	}
 }
 
@@ -107,12 +101,17 @@ uint8_t camCanRead(void) {
 	return ((CAMPIN & (1 << CAMREAD)) != 0);
 }
 
-void camInit(uint8_t *regs) {
-	// Initialize camera with given settings register (8 byte array). Automatically shoots a picture
-	
+void camInitPorts(void) {
 	CAMDDR |= (1 << CAMSTART) | (1 << CAMDATA) | (1 << CAMLOAD) | (1 << CAMRESET) | (1 << CAMCLOCK);
 	CAMDDR &= ~(1 << CAMREAD);
-	
+	CAMPORT &= ~((1 << CAMCLOCK) | (1 << CAMDATA) | (1 << CAMSTART) | (1 << CAMLOAD));
+	CAMPORT |= (1 << CAMRESET);
+}
+
+void camInit(uint8_t *regs) {
+	// Initialize camera with given settings register (8 byte array). Automatically shoots a picture
+
+	camInitPorts();
 	reset();
 	
 	if (regs != NULL) {
@@ -133,8 +132,7 @@ void camInit(uint8_t *regs) {
 		regs = NULL;
 	}
 	
-	camStart();
-	camWait();
+	camShoot();
 }
 
 void camShoot(void) {
@@ -153,9 +151,7 @@ uint8_t camGetByte(void) {
 	}
 
 	setClock(1);
-	_delay_us(CAMDELAY);
 	setClock(0);
-
 	adcStart(CAMOUT);
 	while(adcReady() == 0);
 	result = adcGet(0);
@@ -166,5 +162,4 @@ uint8_t camGetByte(void) {
 void camReset(void) {
 	// Reset camera, so you can load other settings
 	reset();
-	adcClose();
 }
