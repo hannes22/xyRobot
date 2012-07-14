@@ -33,8 +33,6 @@
 #define CAMREAD PA0
 #define CAMOUT 11
 
-#define CAMDELAY 10 // in microseconds
-
 void camInit(uint8_t *regs); // Shoots a picture. No need to call camShoot directly afterwards...
 void camShoot(void);
 uint8_t camCanRead(void);

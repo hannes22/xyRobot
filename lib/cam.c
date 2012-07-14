@@ -27,83 +27,80 @@
 #include <adc.h>
 #include <cam.h>
 #include <misc.h>
+#include <time.h>
 
-/*
- * Exposure settings change the time needed, so transmitting the registers works. The error is somewhere else...
- */
-
-uint8_t camInitialized = 0;
+#define CAMDELAY 1
 
 void setClock(uint8_t load) {
-    _delay_us(CAMDELAY);
-    if (load == 1) {
-        CAMPORT |= (1 << CAMCLOCK);
-    }
-    
-    if (load == 0) {
-        CAMPORT &= ~(1 << CAMCLOCK);
-    }
-    
-    if (load == 2) {
-        CAMPORT ^= (1 << CAMCLOCK);
-    }
-    _delay_us(CAMDELAY);
+	_delay_us(CAMDELAY);
+	if (load == 1) {
+		CAMPORT |= (1 << CAMCLOCK);
+	}
+	
+	if (load == 0) {
+		CAMPORT &= ~(1 << CAMCLOCK);
+	}
+	
+	if (load == 2) {
+		CAMPORT ^= (1 << CAMCLOCK);
+	}
+	_delay_us(CAMDELAY);
 }
 
 void reset(void) {
-    CAMPORT &= ~(1 << CAMRESET);
-    setClock(1);
-    _delay_us(CAMDELAY);
-    CAMPORT |= (1 << CAMRESET);
-    setClock(0);
+	setClock(0);
+	CAMPORT &= ~(1 << CAMRESET);
+	_delay_us(CAMDELAY);
+	setClock(1);
+	CAMPORT |= (1 << CAMRESET);
 }
 
 void sendBit(uint8_t bit, uint8_t load) {
-    if (bit != 0) {
-        CAMPORT |= (1 << CAMDATA);
-    } else {
-        CAMPORT &= ~(1 << CAMDATA);
-    }
-    setClock(1);
-    if (load != 0) {
-        CAMPORT |= (1 << CAMLOAD);
-    }
-    _delay_us(CAMDELAY);
-    setClock(0);
-    _delay_us(CAMDELAY);
-    CAMPORT &= ~(1 << CAMLOAD);
+	if (bit != 0) {
+		CAMPORT |= (1 << CAMDATA);
+	} else {
+		CAMPORT &= ~(1 << CAMDATA);
+	}
+	setClock(1);
+	if (load != 0) {
+		CAMPORT |= (1 << CAMLOAD);
+	}
+	_delay_us(CAMDELAY);
+	setClock(0);
+	_delay_us(CAMDELAY);
+	CAMPORT &= ~(1 << CAMLOAD);
 }
 
 void setRegisters(uint8_t *regs) {
-    // regs: array 8 bytes
-    uint8_t reg, i;
-    for (reg = 0; reg < 8; reg++) {
-        
-        sendBit(reg & 4, 0);
-        sendBit(reg & 2, 0);
-        sendBit(reg & 1, 0);
-        
-        for (i = 0; i < 8; i++) {
-            sendBit(regs[reg] & (1 << (7 - i)), (i == 7));
-        }
-    }
+	// regs: array 8 bytes
+	uint8_t reg, i;
+	for (reg = 0; reg < 8; reg++) {
+		
+		sendBit(reg & 4, 0);
+		sendBit(reg & 2, 0);
+		sendBit(reg & 1, 0);
+		
+		for (i = 0; i < 8; i++) {
+			sendBit(regs[reg] & (1 << (7 - i)), (i == 7));
+		}
+	}
 }
 
 void camStart(void) {
-    CAMPORT |= (1 << CAMSTART);
-    setClock(1);
-    _delay_us(CAMDELAY);
-    CAMPORT &= ~(1 << CAMSTART);
-    setClock(0);
+	CAMPORT |= (1 << CAMSTART);
+	setClock(1);
+	_delay_us(CAMDELAY);
+	CAMPORT &= ~(1 << CAMSTART);
+	setClock(0);
 }
 
 void camWait(void) {
-    while ((CAMPIN & (1 << CAMREAD)) == 0) {
-        setClock(1);
-        _delay_us(CAMDELAY);
-        setClock(0);
-        _delay_us(CAMDELAY);
-    }
+	while ((CAMPIN & (1 << CAMREAD)) == 0) {
+		setClock(1);
+		_delay_us(CAMDELAY);
+		setClock(0);
+		_delay_us(CAMDELAY);
+	}
 }
 
 uint8_t camCanRead(void) {
@@ -112,56 +109,51 @@ uint8_t camCanRead(void) {
 
 void camInit(uint8_t *regs) {
 	// Initialize camera with given settings register (8 byte array). Automatically shoots a picture
-    
-    CAMDDR |= (1 << CAMSTART) | (1 << CAMDATA) | (1 << CAMLOAD) | (1 << CAMRESET) | (1 << CAMCLOCK);
-    CAMDDR &= ~(1 << CAMREAD);
-    
-    camInitialized = 1;
-
-    reset();
-    
-    if (regs != NULL) {
-        setRegisters(regs);
-    } else {
-        regs = (uint8_t *)malloc(8);
-        regs[0] = 0x7F; // Z & Offset
-        regs[1] = 0x02; // N & VH & Gain
-        regs[2] = 0x00; // Exposure 2
-        regs[3] = 90; // Exposure 1
-        regs[4] = 0x01; // P
-        regs[5] = 0x00; // M
-        regs[6] = 0x01; // X
-        regs[7] = 0x04; // E & V
-        
-        setRegisters(regs);
-        free(regs);
-        regs = NULL;
-    }
-    
-    camStart();
-    
-    camWait();
+	
+	CAMDDR |= (1 << CAMSTART) | (1 << CAMDATA) | (1 << CAMLOAD) | (1 << CAMRESET) | (1 << CAMCLOCK);
+	CAMDDR &= ~(1 << CAMREAD);
+	
+	reset();
+	
+	if (regs != NULL) {
+		setRegisters(regs);
+	} else {
+		regs = (uint8_t *)malloc(8);
+		regs[0] = 0x7F; // Z & Offset
+		regs[1] = 0x02; // N & VH & Gain
+		regs[2] = 0x00; // Exposure 2
+		regs[3] = 90; // Exposure 1
+		regs[4] = 0x01; // P
+		regs[5] = 0x00; // M
+		regs[6] = 0x01; // X
+		regs[7] = 0x04; // E & V
+		
+		setRegisters(regs);
+		free(regs);
+		regs = NULL;
+	}
+	
+	camStart();
+	camWait();
 }
 
 void camShoot(void) {
 	// Start shooting a picture
-	if (camInitialized == 0) {
-        camInit(NULL);
-        return;
-    }
-    camStart();
-    camWait();
+	camStart();
+	camWait();
 }
 
 uint8_t camGetByte(void) {
 	// Get one byte of the picture shot.
 	// Shoots a picture if not already done
 	uint8_t result;
+
 	if (!camCanRead()) {
 		camShoot();
 	}
 
 	setClock(1);
+	_delay_us(CAMDELAY);
 	setClock(0);
 
 	adcStart(CAMOUT);
@@ -173,7 +165,6 @@ uint8_t camGetByte(void) {
 
 void camReset(void) {
 	// Reset camera, so you can load other settings
-    camInitialized = 0;
-    reset();
-    adcClose();
+	reset();
+	adcClose();
 }
