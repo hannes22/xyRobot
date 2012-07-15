@@ -73,7 +73,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JTextArea tutorial = null;
 	private JButton default1 = null;
 
-	private final int defaultData[] = { 0x80, 0x04, 0x06, 0x00, 0x01, 0x00, 0x01, 0x03 };
+	private final int defaultData[] = { 0x00, 0x03, 0x00, 0x1, 0x01, 0x00, 0x01, 0x04 };
 
 	public Registers(Remote f, int[] regs) {
 		this(f);
@@ -89,7 +89,6 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
-				convertSettingsToVals();
 				r.registersUpdated(getRegisters());
 				dispose();
 			}
@@ -104,8 +103,8 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
 		tutorial.insert(" After closing this window, the\n values on the right"
 					+ " are what is\n going into the Camera Registers.\n If you have used"
-					+ " the graphical\n tools to change the configuration,\n press the "
-					+ "Arrow-To-The-Right\n Button to convert the config\n into Hexadecimal numbers. ", 0);
+					+ " the GUI tools\n to change the configuration,\n press the "
+					+ "Arrow-To-The-Right\n Button to convert the config.\n", 0);
 		add(tutorial);
 
 		convertToRaw = new JButton();
@@ -233,7 +232,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		CVal.setBounds(5, 220, 55, 20);
 		stuff.add(CVal);
 
-		C = new JSlider(0, 1048);
+		C = new JSlider(0, 65536);
 		C.setBounds(60, 220, 115, 20);
 		C.addChangeListener(this);
 		C.setValue(524);
@@ -544,11 +543,11 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 
 	private int calcExposure(int two, int three) {
 		int val = three + (two << 8);
-		return val * 16 / 1000;
+		return val;
 	}
 
 	private void calcExposure(int[] regs, int exposure) {
-		int steps = exposure * 1000 / 16;
+		int steps = exposure;
 		regs[3] = (steps & 0x00FF);
 		regs[2] = (steps & 0xFF00) >> 8;
 	}
@@ -595,7 +594,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 			}
 			EVal.setText(E.getValue() + "%");
 		} else if (ev.getSource().equals(C)) {
-			CVal.setText(C.getValue() + "ms");
+			CVal.setText((C.getValue() * 16 / 1000) + "ms");
 		} else if (ev.getSource().equals(O)) {
 			float tmp = ((float)O.getValue()) / 31f;
 			tmp = (float)(((int)(tmp * 10)) / 10f);

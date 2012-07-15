@@ -38,6 +38,33 @@ class PaintCanvas extends JPanel {
 		data = new int[w][h];
 	}
 
+	public void testPatternA() {
+		for (int x = 0; x < 128; x++) {
+			for (int y = 0; y < 128; y++) {
+				data[x][y] = y * 2;
+			}
+		}
+		repaint();
+	}
+
+	public void testPatternB() {
+		for (int x = 0; x < 128; x++) {
+			for (int y = 0; y < 128; y++) {
+				data[x][y] = x * 2;
+			}
+		}
+		repaint();
+	}
+
+	public void testPatternC() {
+		for (int x = 0; x < 128; x++) {
+			for (int y = 0; y < 128; y++) {
+				data[x][y] = x + y;
+			}
+		}
+		repaint();
+	}
+
 	public void setData(short[] dat) {
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
@@ -95,7 +122,7 @@ class PaintCanvas extends JPanel {
 	}
 
 	public RenderedImage paintIntoImage() {
-		BufferedImage buff = new BufferedImage(data.length, data[0].length, BufferedImage.TYPE_INT_RGB);
+		BufferedImage buff = new BufferedImage(w * scale, h * scale, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = buff.createGraphics();
 		paintComponent(g);
 		g.dispose();

@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <avr/io.h>
@@ -48,6 +47,10 @@ void setClock(uint8_t load) {
 }
 
 void reset(void) {
+	setClock(1);
+	setClock(0);
+	setClock(1);
+	setClock(0); // Requires 2 complete clock cycles before resetting
 	CAMPORT &= ~(1 << CAMRESET);
 	setClock(1);
 	CAMPORT |= (1 << CAMRESET);
@@ -60,10 +63,10 @@ void sendBit(uint8_t bit, uint8_t load) {
 	} else {
 		CAMPORT &= ~(1 << CAMDATA);
 	}
-	setClock(1);
 	if (load != 0) {
 		CAMPORT |= (1 << CAMLOAD);
 	}
+	setClock(1);
 	setClock(0);
 	CAMPORT &= ~(1 << CAMLOAD);
 }
@@ -73,9 +76,9 @@ void setRegisters(uint8_t *regs) {
 	uint8_t reg, i;
 	for (reg = 0; reg < 8; reg++) {
 		
-		sendBit(reg & 4, 0);
-		sendBit(reg & 2, 0);
-		sendBit(reg & 1, 0);
+		sendBit(reg & (1 << 2), 0);
+		sendBit(reg & (1 << 1), 0);
+		sendBit(reg & (1 << 0), 0);
 		
 		for (i = 0; i < 8; i++) {
 			sendBit(regs[reg] & (1 << (7 - i)), (i == 7));
@@ -154,7 +157,7 @@ uint8_t camGetByte(void) {
 	setClock(0);
 	adcStart(CAMOUT);
 	while(adcReady() == 0);
-	result = adcGet(0);
+	result = adcGet(0); // Don't start next conversion
 
 	return result;
 }

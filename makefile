@@ -43,6 +43,7 @@ SRC += lib/adc.c
 SRC += lib/cam.c
 SRC += lib/motor.c
 SRC += lib/time.c
+SRC += lib/mem.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s

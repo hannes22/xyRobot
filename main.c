@@ -35,6 +35,7 @@
 #include <adc.h>
 #include <cam.h>
 #include <time.h>
+#include <mem.h>
 
 // Remember: Strings to the lcd should not end with \n
 // Timer 0 (8 bit): Motor --> Servos
@@ -87,6 +88,7 @@ int main(void) {
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
 	adcInit();
 	camInitPorts();
+	memInit();
 
 	// initSystemTimer(); // Not used. Heavy cpu usage...
 

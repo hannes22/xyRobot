@@ -69,10 +69,10 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 	private final int RIGHT = 3;
 
 	private int registers[] = {
-		0x7F, // Z & Offset
-		0x02, // N & VH & Gain
+		0x00, // Z & Offset
+		0x03, // N & VH & Gain
 		0x00, // C1
-		0x5A, // C0
+		0x01, // C0
 		0x01, // P
 		0x00, // M
 		0x01, // X
@@ -280,10 +280,10 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		closePort.setEnabled(open);
 		openPort.setEnabled(!open);
 		trigger.setEnabled(open);
-		save.setEnabled(open);
+		// save.setEnabled(open);
 		camMoveX.setEnabled(open);
 		camMoveY.setEnabled(open);
-		camSettings.setEnabled(open);
+		// camSettings.setEnabled(open);
 		drive.setEnabled(open);
 		reverse.setEnabled(open);
 		speed.setEnabled(open);
@@ -415,6 +415,18 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 
 			case 'p':
 				canvas.printData();
+				break;
+
+			case '1':
+				canvas.testPatternA();
+				break;
+
+			case '2':
+				canvas.testPatternB();
+				break;
+
+			case '3':
+				canvas.testPatternC();
 				break;
 
 			case 'q':
