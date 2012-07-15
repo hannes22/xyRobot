@@ -35,6 +35,7 @@ void memInit() {
 
 	PORTJ &= ~(1 << PJ5); // Select first (and only) SRAM
 	// Bank-Switching not yet implemented
+	PORTK |= (1 << PK4); // Read mode
 }
 
 void selectLatch(uint8_t l) {
@@ -79,7 +80,6 @@ uint8_t memGet(uint32_t a) {
 		a = MEMSIZE - 1;
 	}
 	setAddress(a);
-	PORTK |= (1 << PK4); // Set read mode
 	DDRC = 0; // Input
 	val = PINC;
 	DDRC = 0xFF; // Output again
@@ -94,5 +94,6 @@ void memSet(uint32_t a, uint8_t d) {
 	setAddress(a);
 	PORTK &= ~(1 << PK4); // Write mode
 	PORTC = d;
+	PORTK |= (1 << PK4); // Back to read mode
 	PORTK ^= (1 << PK5); // Toggle led
 }

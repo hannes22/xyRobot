@@ -79,10 +79,7 @@ int main(void) {
 	ledInit();
 	ledToggle(2);
 
-	// driveInit();
-	// --> rotateInit() and motorInit()
-	motorInit();
-
+	driveInit();
 	twiInit();
 	lcdInit();
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
