@@ -68,6 +68,10 @@ char nextPageString[] PROGMEM = "\n0) Next page";
 
 uint8_t page = 0, menu = MENU0;
 
+uint8_t upDownPos = MIDDLE;
+uint8_t leftRightPos = CENTER;
+#define SERVOSTEPWIDTH 3
+
 void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
@@ -98,9 +102,11 @@ int main(void) {
 	serialWriteString("Initialized!\n");
 
 	while(1) {
-
 		menuHandler();
 		remoteHandler();
+
+		rotateUpDown(upDownPos);
+		rotateLeftRight(leftRightPos);
 	}
 	return 0;
 }
@@ -134,7 +140,7 @@ void printMenu(uint8_t menu) {
 		// Bluetooth
 	} else if (menu == MENU4) {
 		// Servos
-		lcdPutString("\n1) Left-Right\n2) Up-Down\n\n0) Main Menu");
+		lcdPutString("\n1) Left-Right\n3) Up-Down\n\n0) Main Menu");
 	}
 }
 
@@ -202,9 +208,29 @@ void menuHandler() {
 			menu = MENU0;
 			printMenu(menu);
 		} else if (c == '1') {
-			rotateLeftRight(lcdGetNum());
+			leftRightPos = lcdGetNum();
+		} else if (c == '3') {
+			upDownPos = lcdGetNum();
 		} else if (c == '2') {
-			rotateUpDown(lcdGetNum());
+			// Up
+			if (upDownPos <= (180 - SERVOSTEPWIDTH)) {
+				upDownPos += SERVOSTEPWIDTH;
+			}
+		} else if (c == '8') {
+			// Down
+			if (upDownPos >= SERVOSTEPWIDTH) {
+				upDownPos -= SERVOSTEPWIDTH;
+			}
+		} else if (c == '4') {
+			// Left
+			if (leftRightPos >= SERVOSTEPWIDTH) {
+				leftRightPos -= SERVOSTEPWIDTH;
+			}
+		} else if (c == '6') {
+			// Right
+			if (leftRightPos <= (180 - SERVOSTEPWIDTH)) {
+				leftRightPos += SERVOSTEPWIDTH;
+			}
 		}
 	}
 }
@@ -221,9 +247,6 @@ void menuHandler() {
  *
  * default					--> Send revieced character back
  */
-
-uint8_t upDownPos = 90;
-uint8_t leftRightPos = 90;
 
 void remoteHandler() {
 	uint8_t c;
@@ -243,7 +266,6 @@ void remoteHandler() {
 			}
 			serialWriteString(byteToString(upDownPos));
 			serialWrite('\n');
-			rotateUpDown(upDownPos);
 			break;
 
 		case 's':
@@ -252,7 +274,6 @@ void remoteHandler() {
 			}
 			serialWriteString(byteToString(upDownPos));
 			serialWrite('\n');
-			rotateUpDown(upDownPos);
 			break;
 
 		case 'd':
@@ -261,7 +282,6 @@ void remoteHandler() {
 			}
 			serialWriteString(byteToString(leftRightPos));
 			serialWrite('\n');
-			rotateLeftRight(leftRightPos);
 			break;
 
 		case 'a':
@@ -270,20 +290,19 @@ void remoteHandler() {
 			}
 			serialWriteString(byteToString(leftRightPos));
 			serialWrite('\n');
-			rotateLeftRight(leftRightPos);
 			break;
 
 		case 0x80:
 			temp = serialGet();
 			if (temp <= 180) {
-				rotateUpDown(temp);
+				upDownPos = temp;
 			}
 			break;
 
 		case 0x81:
 			temp = serialGet();
 			if (temp <= 180) {
-				rotateLeftRight(temp);
+				leftRightPos = temp;
 			}
 			break;
 

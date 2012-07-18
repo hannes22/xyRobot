@@ -566,7 +566,7 @@ void connect_device() {
 			}
 		}
 		state++;
-		state = state % sizeof(ANIM_CHARS) - 2;
+		state = state % 4;
 		if (ntries) try--;
 		usleep(10000); //wait 10ms
 		

@@ -29,9 +29,9 @@
 #define LEFT 4
 
 // Servo positions
-#define CENTER 130
+#define CENTER 95
 #define LR_CENTER CENTER
-#define MIDDLE 80
+#define MIDDLE 50
 #define UD_CENTER MIDDLE
 
 #define TURNSPEED 128

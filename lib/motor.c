@@ -39,8 +39,8 @@
 #endif
 #endif
 
-volatile uint8_t servoLeftRight = CENTER;
-volatile uint8_t servoUpDown = MIDDLE;
+volatile uint8_t servoLeftRight;
+volatile uint8_t servoUpDown;
 
 void driveInit() {
 	motorInit();
@@ -48,6 +48,9 @@ void driveInit() {
 }
 
 void rotateInit() {
+	rotateLeftRight(CENTER);
+	rotateUpDown(MIDDLE);
+
 	// 8-bit Counter, CTC Mode, Prescaler 1, count to 160 --> ISR every 10 microseconds
 	TCCR0A |= (1 << WGM01); // CTC Mode
 	TCCR0B |= (1 << CS00); // Prescaler: 1

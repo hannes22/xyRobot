@@ -160,11 +160,13 @@ void motorSpeed(uint8_t left, uint8_t right) {
 		ledSet(0, 1);
 	} else {
 		ledSet(0, 0);
+		motorDirection(BREAKLEFT);
 	}
 	if (right != 0) {
 		ledSet(1, 1);
 	} else {
 		ledSet(1, 0);
+		motorDirection(BREAKRIGHT);
 	}
 }
 
@@ -177,11 +179,13 @@ void motorStop() {
 		countRight = 0;
 		countLeft = 0;
 	}
+	motorDirection(BREAK);
 	ledSet(0, 0);
 	ledSet(1, 0);
 }
 
 void motorDirection(uint8_t dir) {
+	// Left motor
 	switch (dir) {
 	case FORWARD: case TURNRIGHT:
 		PORTL &= ~((1 << PL6) | (1 << PL7));
@@ -191,7 +195,11 @@ void motorDirection(uint8_t dir) {
 		PORTL &= ~((1 << PL6) | (1 << PL7));
 		PORTL |= (1 << PL7);
 		break;
+	case BREAK: case BREAKLEFT:
+		PORTL &= ~((1 << PL6) | (1 << PL7));
+		break;
 	}
+	// Right motor
 	switch (dir) {
 	case FORWARD: case TURNLEFT:
 		PORTJ &= ~((1 << PJ6) | (1 << PJ7));
@@ -200,6 +208,9 @@ void motorDirection(uint8_t dir) {
 	case BACKWARD: case TURNRIGHT:
 		PORTJ &= ~((1 << PJ6) | (1 << PJ7));
 		PORTJ |= (1 << PJ6);
+		break;
+	case BREAK: case BREAKRIGHT:
+		PORTJ &= ~((1 << PJ6) | (1 << PJ7));
 		break;
 	}
 	dirGlobal = dir;

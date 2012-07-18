@@ -26,6 +26,9 @@
 #define BACKWARD 2
 #define TURNRIGHT 3
 #define TURNLEFT 4
+#define BREAK 5
+#define BREAKRIGHT 6
+#define BREAKLEFT 7
 
 void motorInit(void);
 void motorSpeed(uint8_t left, uint8_t right);
