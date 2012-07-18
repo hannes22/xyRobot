@@ -70,7 +70,6 @@ uint8_t page = 0, menu = MENU0;
 
 uint8_t upDownPos = MIDDLE;
 uint8_t leftRightPos = CENTER;
-#define SERVOSTEPWIDTH 3
 
 void printMenu(uint8_t menu);
 void menuHandler(void);
@@ -231,6 +230,9 @@ void menuHandler() {
 			if (leftRightPos <= (180 - SERVOSTEPWIDTH)) {
 				leftRightPos += SERVOSTEPWIDTH;
 			}
+		} else if (c == '5') {
+			leftRightPos = CENTER;
+			upDownPos = MIDDLE;
 		}
 	}
 }
@@ -296,6 +298,8 @@ void remoteHandler() {
 			temp = serialGet();
 			if (temp <= 180) {
 				upDownPos = temp;
+			} else {
+				upDownPos = MIDDLE;
 			}
 			break;
 
@@ -303,6 +307,8 @@ void remoteHandler() {
 			temp = serialGet();
 			if (temp <= 180) {
 				leftRightPos = temp;
+			} else {
+				leftRightPos = CENTER;
 			}
 			break;
 

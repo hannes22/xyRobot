@@ -26,11 +26,12 @@ import java.awt.event.*;
 import javax.imageio.*;
 import java.io.*;
 
-public class Remote extends JFrame implements KeyListener, ActionListener, ChangeListener {
+public class Remote extends JFrame implements KeyListener, ActionListener,
+												ChangeListener {
 
 	private final String version = "0.42";
-	private final int width = 500;
-	private final int height = 500;
+	public final int width = 512;
+	public final int height = 512;
 
 	private PaintCanvas canvas = null;
 
@@ -61,6 +62,8 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 	private JButton turnRight = null;
 	private JButton turnLeft = null;
 
+	private CanvasWindow canvasWin = null;
+
 	public SerialCommunicator serial = null;
 
 	private final int UP    = 0;
@@ -81,7 +84,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 
 	public Remote() {
 		super("xyRobotRemote");
-		setSize(width, height);
+		setBounds(512, 0, width, height);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addKeyListener(this);
 		setLayout(null);
@@ -90,9 +93,9 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 
 		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
-		c.add(canvas);
 		canvas.addKeyListener(this);
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
+		c.add(canvas);
 
 		status = new JTextArea("Initializing xyRobotRemote...");
 		status.setBounds(10, 275, 256, 150);
@@ -180,7 +183,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		fastTest.addKeyListener(this);
 		cameraStuff.add(fastTest);
 
-		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 90); // vertical cam movement slider
+		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 40); // vertical cam movement slider
 		camMoveY.setBounds(5, 15, 60, 205);
 		camMoveY.addKeyListener(this);
 		camMoveY.addChangeListener(this);
@@ -190,6 +193,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		cameraStuff.add(camMoveY);
 
 		camMoveX = new JSlider(0, 180);
+		camMoveX.setValue(95);
 		camMoveX.setBounds(60, 165, 150, 60);
 		camMoveX.addKeyListener(this);
 		camMoveX.addChangeListener(this);
@@ -264,16 +268,17 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		setControls(false); // Turn everything off
 		setVisible(true);
 
+		canvasWin = new CanvasWindow(this);
+		canvas.setToRefresh(canvasWin.getCanvas());
+
+		this.requestFocus();
+
 		serial = new SerialCommunicator(this);
 
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
 		log("Initialized!");
-	}
-
-	public void registersUpdated(int[] regs) {
-		registers = regs;
 	}
 
 	public void setControls(boolean open) {
@@ -347,15 +352,13 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 				if (serial.writeChar('?')) {
 					String ver = serial.readLine();
 					if (ver != null) {
-						setControls(true);
-						log("Connected to: " + ver);
+						connectionOpened(ver);
 					} else {
 						// We are too fast, try again...
 						if (serial.writeChar('?')) {
 							ver = serial.readLine();
 							if (ver != null) {
-								setControls(true);
-								log("Connected to: \"" + ver + "\"");
+								connectionOpened(ver);
 							} else {
 								showError("No answer after second attempt!");
 							}
@@ -388,6 +391,21 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 				}
 			}
 		}
+	}
+
+	private void connectionOpened(String ver) {
+		setControls(true);
+		log("Connected to: " + ver);
+
+		serial.writeChar(0x80);
+		serial.writeChar(180);
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {}
+		serial.writeChar(0x80);
+		serial.writeChar(181);
+		serial.writeChar(0x81);
+		serial.writeChar(181);
 	}
 
 	public void stateChanged(ChangeEvent e) {
@@ -456,8 +474,23 @@ public class Remote extends JFrame implements KeyListener, ActionListener, Chang
 		Remote r = new Remote();
 	}
 
-	public void keyPressed(KeyEvent e) { }
-	public void keyTyped(KeyEvent e) { }
+	public void cameraWindowKilled() {
+		canvasWin = new CanvasWindow(this);
+		canvas.setToRefresh(canvasWin.getCanvas());
+		canvasWin.getCanvas().setData(canvas.data);
+	}
+
+	public void registersUpdated(int[] regs) {
+		registers = regs;
+	}
+
+	/* public void mouseClicked(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {} */
+	public void keyPressed(KeyEvent e) {}
+	public void keyTyped(KeyEvent e) {}
 }
 
 class ShutdownThread implements Runnable {

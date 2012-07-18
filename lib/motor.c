@@ -43,24 +43,6 @@ volatile uint8_t servoLeftRight = 100;
 volatile uint8_t servoUpDown = 100;
 
 // ISR every 10 microseconds
-// --> 16.000.000 / Prescaler / OCRValue = 100.000
-// --> 16.000.000 /     1     /   160    = 100.000
-// --> 16.000.000 /     8     /    20    = 100.000
-// Number fix:
-// [50;200] = OFFSET + ( [0;180] * FACTOR / QUOTIENT )
-
-// No follow 2 configurations:
-// (ISR every 10us or every 100us)
-// The commented-out definitions are for
-// high-resolution servo movements.
-// The now used config needs only 1/10th of
-// the CPU-Time but has less resolution.
-
-#define OCRVAL 200 // #define OCRVAL 20
-#define COUNTMAX 200 // #define COUNTMAX 2000
-#define FACTOR 83
-#define QUOTIENT 1000 // #define QUOTIENT 100
-#define OFFSET 5 // #define OFFSET 50
 
 void driveInit() {
 	motorInit();
@@ -108,7 +90,7 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 void rotateLeftRight(uint8_t pos) {
-	uint16_t tmp = pos * FACTOR;
+	uint16_t tmp = (180 - pos) * FACTOR;
 	tmp /= QUOTIENT;
 	servoLeftRight = OFFSET + tmp; // Fix number: (0 - 180) to (50 - 200)
 }

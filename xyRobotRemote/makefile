@@ -25,14 +25,14 @@ endif
 
 # All java files to be compiled
 # List so it works as target
-JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java Registers.java
+JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java Registers.java CanvasWindow.java
 
 # --------------------------------------
 
 all: xyRobotRemote.jar
 
-run: xyRobotRemote.jar
-	java -jar xyRobotRemote$(PLATFORM).jar
+run: HelperUtility.class manifest.txt libSerial
+	java Remote
 
 doc: doc/index.html
 

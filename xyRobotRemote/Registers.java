@@ -361,7 +361,6 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 
 	private void convertSettingsToVals() {
 		setRegFields(convertSettings());
-		
 	}
 
 	private int[] convertSettings() {
@@ -431,7 +430,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 
 	private void calcVH(int val) {
 		int i = (val & 96) >> 5;
-		VH.setSelectedItem(i);
+		VH.setSelectedIndex(i);
 	}
 
 	private void calcVH(int[] regs) {

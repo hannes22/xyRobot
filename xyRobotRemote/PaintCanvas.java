@@ -25,10 +25,12 @@ import java.awt.image.*;
 
 class PaintCanvas extends JPanel {
 
-	private int[][] data = null;
+	public int[][] data = null;
 	private int scale;
 	private int w;
 	private int h;
+
+	private PaintCanvas toRefresh = null;
 
 	public PaintCanvas(int width, int height, int magnify) {
 		super();
@@ -36,6 +38,10 @@ class PaintCanvas extends JPanel {
 		w = width;
 		h = height;
 		data = new int[w][h];
+	}
+
+	public void setToRefresh(PaintCanvas p) {
+		toRefresh = p;
 	}
 
 	public void testPatternA() {
@@ -69,6 +75,15 @@ class PaintCanvas extends JPanel {
 		for (int i = 0; i < 128; i++) {
 			for (int j = 0; j < 128; j++) {
 				data[i][j] = dat[j + (128 * i)];
+			}
+		}
+		repaint();
+	}
+
+	public void setData(int[][] dat) {
+		for (int i = 0; i < dat.length; i++) {
+			for (int j = 0; j < dat[i].length; j++) {
+				data[i][j] = dat[i][j];
 			}
 		}
 		repaint();
@@ -114,6 +129,9 @@ class PaintCanvas extends JPanel {
 	}
 
 	public void repaint() {
+		if (toRefresh != null) {
+			toRefresh.setData(data);
+		}
 		repaint(0, 0, 0, getWidth(), getHeight());
 	}
 
