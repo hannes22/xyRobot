@@ -38,9 +38,9 @@
 #include <mem.h>
 
 // Remember: Strings to the lcd should not end with \n
-// Timer 0 (8 bit): Motor --> Servos
-// Timer 1 (16bit): Motor_Low
-// Timer 2 (8 bit): SystemTime
+// Timer 0 (8 bit): Servo PWM
+// Timer 1 (16bit): Motor Speed PWM
+// Timer 2 (8 bit): System Time (Currently unused)
 // Timer 3 (16bit): Unused
 // Timer 4 (16bit): Unused
 // Timer 5 (16bit): Unused

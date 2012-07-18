@@ -39,8 +39,28 @@
 #endif
 #endif
 
-volatile uint8_t servoLeftRight;
-volatile uint8_t servoUpDown;
+volatile uint8_t servoLeftRight = 100;
+volatile uint8_t servoUpDown = 100;
+
+// ISR every 10 microseconds
+// --> 16.000.000 / Prescaler / OCRValue = 100.000
+// --> 16.000.000 /     1     /   160    = 100.000
+// --> 16.000.000 /     8     /    20    = 100.000
+// Number fix:
+// [50;200] = OFFSET + ( [0;180] * FACTOR / QUOTIENT )
+
+// No follow 2 configurations:
+// (ISR every 10us or every 100us)
+// The commented-out definitions are for
+// high-resolution servo movements.
+// The now used config needs only 1/10th of
+// the CPU-Time but has less resolution.
+
+#define OCRVAL 200 // #define OCRVAL 20
+#define COUNTMAX 200 // #define COUNTMAX 2000
+#define FACTOR 83
+#define QUOTIENT 1000 // #define QUOTIENT 100
+#define OFFSET 5 // #define OFFSET 50
 
 void driveInit() {
 	motorInit();
@@ -51,10 +71,9 @@ void rotateInit() {
 	rotateLeftRight(CENTER);
 	rotateUpDown(MIDDLE);
 
-	// 8-bit Counter, CTC Mode, Prescaler 1, count to 160 --> ISR every 10 microseconds
 	TCCR0A |= (1 << WGM01); // CTC Mode
-	TCCR0B |= (1 << CS00); // Prescaler: 1
-	OCR0A = 160;
+	TCCR0B |= (1 << CS01); // Prescaler: 8
+	OCR0A = OCRVAL;
 	TIMSK0 |= (1 << OCIE0A); // Enable compare match interrupt
 
 	UPDOWNDDR |= (1 << UPDOWNSERVO);
@@ -72,34 +91,32 @@ ISR(TIMER0_COMPA_vect) {
 	} else {
 		LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
 	}
-	if (count1 < 2000) { // 20ms
-		count1++;
-	} else {
-		count1 = 0;
-	}
 
 	if (count2 > servoUpDown) {
 		UPDOWNPORT &= ~(1 << UPDOWNSERVO);
 	} else {
 		UPDOWNPORT |= (1 << UPDOWNSERVO);
 	}
-	if (count2 < 2000) { // 20ms
+
+	if (count1 < COUNTMAX) { // 20ms
+		count1++;
 		count2++;
 	} else {
+		count1 = 0;
 		count2 = 0;
 	}
 }
 
 void rotateLeftRight(uint8_t pos) {
-	uint16_t tmp = pos * 83;
-	tmp /= 100;
-	servoLeftRight = 50 + tmp;
+	uint16_t tmp = pos * FACTOR;
+	tmp /= QUOTIENT;
+	servoLeftRight = OFFSET + tmp; // Fix number: (0 - 180) to (50 - 200)
 }
 
 void rotateUpDown(uint8_t pos) {
-	uint16_t tmp = pos * 83;
-	tmp /= 100;
-	servoUpDown = 50 + tmp;
+	uint16_t tmp = pos * FACTOR;
+	tmp /= QUOTIENT;
+	servoUpDown = OFFSET + tmp;
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {
