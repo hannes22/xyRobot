@@ -1,7 +1,7 @@
 /*
  * Remote.java
  *
- * Copyright 2011 Thomas Buck <xythobuz@me.com>
+ * Copyright 2012 Thomas Buck <xythobuz@me.com>
  *
  * This file is part of xyRobot.
  *
@@ -31,7 +31,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 
 	private final String version = "0.42";
 	public final int width = 512;
-	public final int height = 512;
+	public final int height = 534;
 
 	private PaintCanvas canvas = null;
 
@@ -63,6 +63,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 	private JButton turnLeft = null;
 
 	private CanvasWindow canvasWin = null;
+	private DistanceWindow distanceWin = null;
 
 	public SerialCommunicator serial = null;
 
@@ -271,7 +272,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		canvasWin = new CanvasWindow(this);
 		canvas.setToRefresh(canvasWin.getCanvas());
 
-		this.requestFocus();
+		distanceWin = new DistanceWindow(this);
 
 		serial = new SerialCommunicator(this);
 
@@ -420,33 +421,14 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
 				// New X-Axis position
 				serial.writeChar(0x81);
-				serial.writeChar(180 - camMoveX.getValue());
+				serial.writeChar(camMoveX.getValue());
 			}
 		}
 	}
 
+	// "Global" shortcuts
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyChar()) {
-			case 'r':
-				canvas.randomize(true);
-				break;
-
-			case 'p':
-				canvas.printData();
-				break;
-
-			case '1':
-				canvas.testPatternA();
-				break;
-
-			case '2':
-				canvas.testPatternB();
-				break;
-
-			case '3':
-				canvas.testPatternC();
-				break;
-
 			case 'q':
 				System.exit(0);
 				break;
@@ -465,13 +447,16 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 	}
 
 	public void log(String log) {
-		// System.out.println(log);
 		status.append("\n" + log);
 		status.setCaretPosition(status.getDocument().getLength());
 	}
 
 	public static void main (String[] args) {
 		Remote r = new Remote();
+	}
+
+	public void distanceWindowKilled() {
+		distanceWin = new DistanceWindow(this);
 	}
 
 	public void cameraWindowKilled() {
