@@ -32,7 +32,6 @@ class CanvasWindow extends JFrame {
 	public CanvasWindow(Remote parent) {
 		super("Camera Viewer");
 		setResizable(false);
-		addKeyListener(r);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				r.cameraWindowKilled();
@@ -43,7 +42,6 @@ class CanvasWindow extends JFrame {
 
 		setBounds(0, 0, 512, 534);
 		p = new PaintCanvas(128, 128, 4);
-		p.addKeyListener(r);
 		add(p);
 
 		setVisible(true);

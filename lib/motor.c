@@ -26,6 +26,7 @@
 #include <motor.h>
 #include <motor_low.h>
 #include <misc.h>
+ #include <adc.h>
 
 #ifdef CMPERTICK
 #ifdef TICKSPERCM
@@ -47,6 +48,28 @@ volatile uint8_t servoUpDown = 100;
 void driveInit() {
 	motorInit();
 	rotateInit();
+}
+
+// Calc Distances:
+//   10cm   2,6V   133
+//   45cm   0,7V   36
+//   80cm   0,4V   20
+// --> d1(x) = 58 - 0,36x
+// --> d2(x) = 124 - 2,19x
+uint8_t getDistance() {
+	uint16_t val, ret;
+	adcStart(10); // Sharp Sensor on ADC10
+	val = adcGet(0);
+	if (val >= 133) {
+		ret = 80; // 80cm, max distance
+	} else if (val >= 36) {
+		ret = 58 - ((36 * val) / 100);
+	} else if (val >= 20) {
+		ret = 124 - ((219 * val) / 100);
+	} else {
+		ret = 0;
+	}
+	return (uint8_t)ret;
 }
 
 void rotateInit() {

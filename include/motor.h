@@ -76,6 +76,8 @@ void drive(uint16_t cm, uint8_t speed, uint8_t dir);
 void turn(uint16_t degree, uint8_t dir);
 uint8_t driveDone(void);
 
+uint8_t getDistance(void);
+
 void rotateInit(void);
 void rotateUpDown(uint8_t pos); // From 0 to 180
 void rotateLeftRight(uint8_t pos);

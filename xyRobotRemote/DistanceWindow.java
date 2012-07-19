@@ -33,13 +33,12 @@ class DistanceWindow extends JFrame {
 	private final int lights = 20;
 
 	public DistanceWindow(Remote parent) {
-		this(parent, 100);
+		this(parent, 80);
 	}
 
 	public DistanceWindow(Remote parent, int maxVal) {
 		super();
 		setResizable(false);
-		addKeyListener(r);
 		setLayout(null);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
@@ -54,12 +53,11 @@ class DistanceWindow extends JFrame {
 		
 		l = new JLabel[lights];
 		for (int i = 0; i < l.length; i++) {
-			l[l.length - 1 - i] = new JLabel("" + (5 + (max * (l.length - 1 - i) / l.length)));
+			l[l.length - 1 - i] = new JLabel("" + (4 + (max * (l.length - 1 - i) / l.length)));
 			l[l.length - 1 - i].setHorizontalAlignment(SwingConstants.CENTER);
 			l[l.length - 1 - i].setOpaque(true);
 			l[l.length - 1 - i].setBackground(Color.GRAY);
 			l[l.length - 1 - i].setBounds(5, 5 + (i * 25), 140, 20);
-			l[l.length - 1 - i].addKeyListener(r);
 			add(l[l.length - 1 - i]);
 		}
 

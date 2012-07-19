@@ -246,6 +246,7 @@ void menuHandler() {
  * 0x83, dist, speed, dir	--> Drive dist cm with speed speed, dir 1 = Forward, 0 = backward
  * 0x84, degree, dir		--> Turn. Dir 1 = right, 0 = left
  * 0x85, r1 ... r8			--> Send picture, but use only 4bit per pixel!
+ * 0x86						--> Get distance
  *
  * default					--> Send revieced character back
  */
@@ -341,6 +342,10 @@ void remoteHandler() {
 
 		case 0x85:
 			sendFastCamPic();
+			break;
+
+		case 0x86:
+			serialWrite(getDistance());
 			break;
 
 		default:

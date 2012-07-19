@@ -26,10 +26,9 @@ import java.awt.event.*;
 import javax.imageio.*;
 import java.io.*;
 
-public class Remote extends JFrame implements KeyListener, ActionListener,
-												ChangeListener {
+public class Remote extends JFrame implements ActionListener, ChangeListener {
 
-	private final String version = "0.42";
+	private final String version = "0.5";
 	public final int width = 512;
 	public final int height = 534;
 
@@ -87,32 +86,27 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		super("xyRobotRemote");
 		setBounds(512, 0, width, height);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		addKeyListener(this);
 		setLayout(null);
 		setResizable(false);
 		Container c = getContentPane();
 
 		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
-		canvas.addKeyListener(this);
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
 		c.add(canvas);
 
 		status = new JTextArea("Initializing xyRobotRemote...");
 		status.setBounds(10, 275, 256, 150);
-		status.addKeyListener(this);
 		status.setEditable(false);
 		statusScroll = new JScrollPane(status);
 		statusScroll.setBorder(BorderFactory.createLoweredBevelBorder());
 		statusScroll.setBounds(10, 275, 256, 150);
-		statusScroll.addKeyListener(this);
 		c.add(statusScroll);
 
 		serialStuff = new JPanel();
 		serialStuff.setBorder(BorderFactory.createTitledBorder("Serial"));
 		serialStuff.setBounds(275, 5, 215, 95);
 		serialStuff.setLayout(null);
-		serialStuff.addKeyListener(this);
 		c.add(serialStuff);
 
 		String[] ports = HelperUtility.getPorts();
@@ -131,21 +125,18 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 			}
 		}
 		portSelector = new JComboBox(ports);
-		portSelector.addKeyListener(this);
 		portSelector.setBounds(5, 20, 205, 30);
 		serialStuff.add(portSelector);
 
 		openPort = new JButton();
 		openPort.setText("Open");
 		openPort.setBounds(5, 55, 100, 30);
-		openPort.addKeyListener(this);
 		openPort.addActionListener(this);
 		serialStuff.add(openPort);
 
 		closePort = new JButton();
 		closePort.setText("Close");
 		closePort.setBounds(105, 55, 100, 30);
-		closePort.addKeyListener(this);
 		closePort.addActionListener(this);
 		serialStuff.add(closePort);
 
@@ -153,27 +144,23 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
 		cameraStuff.setBounds(275, 105, 215, 225);
 		cameraStuff.setLayout(null);
-		cameraStuff.addKeyListener(this);
 		c.add(cameraStuff);
 
 		trigger = new JButton();
 		trigger.setText("Shoot Pic");
 		trigger.setBounds(60, 15, 140, 30);
-		trigger.addKeyListener(this);
 		trigger.addActionListener(this);
 		cameraStuff.add(trigger);
 
 		camSettings = new JButton();
 		camSettings.setText("Cam Registers");
 		camSettings.setBounds(60, 50, 140, 30);
-		camSettings.addKeyListener(this);
 		camSettings.addActionListener(this);
 		cameraStuff.add(camSettings);
 
 		save = new JButton();
 		save.setText("Save image");
 		save.setBounds(60, 85, 140, 30);
-		save.addKeyListener(this);
 		save.addActionListener(this);
 		cameraStuff.add(save);
 
@@ -181,12 +168,10 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		fastTest.setText("Fast Shoot");
 		fastTest.setBounds(60, 120, 140, 30);
 		fastTest.addActionListener(this);
-		fastTest.addKeyListener(this);
 		cameraStuff.add(fastTest);
 
 		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 40); // vertical cam movement slider
 		camMoveY.setBounds(5, 15, 60, 205);
-		camMoveY.addKeyListener(this);
 		camMoveY.addChangeListener(this);
 		camMoveY.setMajorTickSpacing(45);
 		camMoveY.setMinorTickSpacing(45);
@@ -196,7 +181,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		camMoveX = new JSlider(0, 180);
 		camMoveX.setValue(95);
 		camMoveX.setBounds(60, 165, 150, 60);
-		camMoveX.addKeyListener(this);
 		camMoveX.addChangeListener(this);
 		camMoveX.setMajorTickSpacing(45);
 		camMoveX.setMinorTickSpacing(45);
@@ -207,62 +191,52 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
 		driveStuff.setBounds(275, 330, 215, 100);
 		driveStuff.setLayout(null);
-		driveStuff.addKeyListener(this);
 		c.add(driveStuff);
 
 		dist = new JTextField();
 		dist.setText("100");
 		dist.setBounds(5, 20, 40, 30);
-		dist.addKeyListener(this);
 		driveStuff.add(dist);
 
 		distCM = new JLabel();
 		distCM.setText("cm");
 		distCM.setBounds(45, 20, 20, 30);
-		distCM.addKeyListener(this);
 		driveStuff.add(distCM);
 
 		speed = new JTextField();
 		speed.setText("200");
 		speed.setBounds(70, 20, 40, 30);
-		speed.addKeyListener(this);
 		driveStuff.add(speed);
 
 		reverse = new JCheckBox();
 		reverse.setBounds(115, 20, 30, 30);
-		reverse.addKeyListener(this);
 		driveStuff.add(reverse);
 
 		drive = new JButton();
 		drive.setText("Drive");
 		drive.setBounds(150, 20, 60, 30);
-		drive.addKeyListener(this);
 		drive.addActionListener(this);
 		driveStuff.add(drive);
 
 		degree = new JTextField();
 		degree.setText("180");
 		degree.setBounds(15, 55, 40, 30);
-		degree.addKeyListener(this);
 		driveStuff.add(degree);
 
 		degreeDeg = new JLabel();
 		degreeDeg.setText("\u00b0");
 		degreeDeg.setBounds(55, 55, 30, 30);
-		degreeDeg.addKeyListener(this);
 		driveStuff.add(degreeDeg);
 
 		turnLeft = new JButton();
 		turnLeft.setText("L");
 		turnLeft.setBounds(80, 55, 50, 30);
-		turnLeft.addKeyListener(this);
 		turnLeft.addActionListener(this);
 		driveStuff.add(turnLeft);
 
 		turnRight = new JButton();
 		turnRight.setText("R");
 		turnRight.setBounds(135, 55, 50, 30);
-		turnRight.addKeyListener(this);
 		turnRight.addActionListener(this);
 		driveStuff.add(turnRight);
 
@@ -300,6 +274,12 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		fastTest.setEnabled(open);
 	}
 
+	private void setDistanceView() {
+		serial.writeChar(0x86);
+		short[] dist = serial.readData(1);
+		distanceWin.setVal(dist[0]);
+	}
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(fastTest)) {
 			serial.writeChar(0x85); // Get fast pic command
@@ -309,6 +289,8 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 			}
 			log("Getting picture data");
 			canvas.setDataSmall(serial.readData((128 * 128) / 2));
+			log("Getting distance");
+			setDistanceView();
 			log("Done!");
 		} else if ((e.getSource().equals(turnRight)) || (e.getSource().equals(turnLeft))) {
 			serial.writeChar(0x84); // command, degree, dir
@@ -346,6 +328,8 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 			}
 			log("Getting picture data");
 			canvas.setData(serial.readData(128 * 128));
+			log("Getting distance");
+			setDistanceView();
 			log("Done!");
 		} else if (e.getSource().equals(openPort)) {
 			// Open Port, enable controls
@@ -426,15 +410,6 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 		}
 	}
 
-	// "Global" shortcuts
-	public void keyReleased(KeyEvent e) {
-		switch (e.getKeyChar()) {
-			case 'q':
-				System.exit(0);
-				break;
-		}
-	}
-
 	public void showError(String error) {
 		System.out.println(error);
 		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
@@ -457,6 +432,9 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 
 	public void distanceWindowKilled() {
 		distanceWin = new DistanceWindow(this);
+		if (serial.isOpen()) {
+			setDistanceView();
+		}
 	}
 
 	public void cameraWindowKilled() {
@@ -472,10 +450,7 @@ public class Remote extends JFrame implements KeyListener, ActionListener,
 	/* public void mouseClicked(MouseEvent e) {}
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
-	public void mouseExited(MouseEvent e) {}
-	public void mousePressed(MouseEvent e) {} */
-	public void keyPressed(KeyEvent e) {}
-	public void keyTyped(KeyEvent e) {}
+	public void mouseExited(MouseEvent e) {} */
 }
 
 class ShutdownThread implements Runnable {
