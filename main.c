@@ -81,8 +81,7 @@ char bluetoothPartner[15];
 void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
-void sendCamPic(void);
-void sendFastCamPic(void);
+void sendCamPic(uint8_t fast);
 void readBluetoothPartner(void);
 
 int main(void) {
@@ -346,7 +345,7 @@ void remoteHandler() {
 			break;
 
 		case 0x82:
-			sendCamPic();
+			sendCamPic(0);
 			break;
 
 		case 0x83:
@@ -373,7 +372,7 @@ void remoteHandler() {
 			break;
 
 		case 0x85:
-			sendFastCamPic();
+			sendCamPic(1);
 			break;
 
 		case 0x86:
@@ -419,37 +418,16 @@ void readBluetoothPartner() {
 	serialReadLineTimeout(1000);
 }
 
-void sendCamPic() {
+void sendCamPic(uint8_t fast) {
 	uint16_t i = 0;
 	uint8_t reg[8];
 	while (i < 8) {
 		while (!serialHasChar());
 		reg[i++] = serialGet();
 	}
-
-	camInit(reg);
-	// Transmit all the bytes...
-	for (i = 0; i < 16384; i++) {
-		serialWrite(camGetByte());
+	if (fast == 0) {
+		camSendSerial(reg, 8);
+	} else {
+		camSendSerial(reg, 4);
 	}
-	camReset();
-}
-
-void sendFastCamPic() {
-	uint16_t i = 0;
-	uint8_t reg[8];
-	uint8_t a, b;
-	while (i < 8) {
-		while (!serialHasChar());
-		reg[i++] = serialGet();
-	}
-
-	camInit(reg);
-	// Transmit all the bytes...
-	for (i = 0; i < 8192; i++) {
-		a = camGetByte();
-		b = camGetByte();
-		serialWrite((a & 0xF0) | ((b & 0xF0) >> 4));
-	}
-	camReset();
 }

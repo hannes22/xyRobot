@@ -39,4 +39,8 @@ void camInit(uint8_t *regs); // Shoots a picture
 uint8_t camGetByte(void);
 void camReset(void);
 
+void camSendSerial(uint8_t *regs, uint8_t depth); // Depth in bit/pixel. Possible: 8, 4, 2, 1
+void camStore(uint8_t *regs, uint8_t pos); // Store in memory at (pos * 128 * 128)
+void camSendStoredSerial(uint8_t pos, uint8_t depth); // Depth in bit/pixel. Possible: 8, 4, 2, 1
+
 #endif

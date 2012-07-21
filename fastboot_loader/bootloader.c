@@ -157,14 +157,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	// print header
-	if (!silent) {
-		// printf("\n");
-		// printf("=================================================\n");
-		printf("Bootloader - Target: V2.1\n");
-		// printf("=================================================\n");
-	}
-
 	if(hexfile == NULL) {
 		fprintf(stderr,"No hexfile specified!\n");
 		usage();
@@ -194,6 +186,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if (!silent) {
+		printf("Target   : V2.1\n");
 		printf("COM dev  : %s\n", device);
 		printf("Baudrate : %i\n", baud);
 		if (*reboot_chars) printf ("Reboot   : %s\n",argv[reboot_arg]);
@@ -205,12 +198,6 @@ int main(int argc, char *argv[]) {
 	connect_device();
 	crc_on = check_crc();
 	read_info();
-	
-	/*if(read_info()) {
-	}
-	else {
-		printf("Reading device information failed!\n");
-	}*/
 
 	if(crc_on != 2) {
 		crc_on = check_crc();
@@ -514,12 +501,7 @@ void usage() {
 	fprintf(stderr,"-p Program\n");
 	fprintf(stderr,"-r Character sequence to reboot AVR (with std. C escape codes)\n");
 	fprintf(stderr,"-s Silent run - exits 0 on success, -1 on failure, errors to stderr\n");
-	fprintf(stderr,"-a Number of AVR bootloader connection attempts (def.: 0 = infinite)\n");
-	// fprintf(stderr,"\n");
-	// fprintf(stderr,"Author: Andreas Butti (andreasbutti at bluewin dot ch)\n");
-	// fprintf(stderr,"Modified by: Ilya Goldberg (igg at cathilya dot org\n");
-	// fprintf(stderr, "Modified by: Thomas Buck (xythobuz at xythobuz dot org\n");
-
+	fprintf(stderr,"-a Number of AVR bootloader connection attempts (0 = infinite)\n");
 	exit(-1);
 }
 

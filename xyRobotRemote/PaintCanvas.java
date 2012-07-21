@@ -72,28 +72,63 @@ class PaintCanvas extends JPanel {
 	}
 
 	public void setData(short[] dat) {
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				data[i][j] = dat[j + (128 * i)];
+		switch (dat.length) {
+			case (128 * 128): default:
+				setData(dat, 8);
+				break;
+			case ((128 * 128) / 2):
+				setData(dat, 4);
+				break;
+			case ((128 * 128) / 4):
+				setData(dat, 2);
+				break;
+			case ((128 * 128) / 8):
+				setData(dat, 1);
+				break;
+		}
+	}
+
+	private void setData(int dat, int pos) {
+		int i = 0;
+		while (pos >= 128) {
+			i++;
+			pos -= 128;
+		}
+		data[i][pos] = dat;
+	}
+
+	public void setData(short[] dat, int depth) {
+		int maxI = (128 * 128) / depthMax(depth);
+		int maxJ = depthMax(depth);
+		for (int i = 0; i < maxI; i++) {
+			for (int j = 0; j < maxJ; j++) {
+				setData(((dat[i] & (1 << (7 - j))) << j), (i * maxJ) + j);
 			}
 		}
 		repaint();
+	}
+
+	private int depthMax(int depth) {
+		switch (depth) {
+			case 8: default:
+				return 1;
+			case 4:
+				return 2;
+			case 2:
+				return 4;
+			case 1:
+				return 8;
+		}
+	}
+
+	public void setDataSmall(short[] dat) {
+		setData(dat, 4);
 	}
 
 	public void setData(int[][] dat) {
 		for (int i = 0; i < dat.length; i++) {
 			for (int j = 0; j < dat[i].length; j++) {
 				data[i][j] = dat[i][j];
-			}
-		}
-		repaint();
-	}
-
-	public void setDataSmall(short[] dat) {
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j += 2) {
-				data[i][j] = (dat[(j / 2) + (64 * i)] & 0xF0) + 0x0F;
-				data[i][j + 1] = ((dat[(j / 2) + (64 * i)] & 0x0F) << 4) + 0x0F;
 			}
 		}
 		repaint();

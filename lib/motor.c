@@ -51,15 +51,24 @@ void driveInit() {
 }
 
 // Calc Distances:
-//   10cm   2,6V   133
-//   45cm   0,7V   36
-//   80cm   0,4V   20
-// --> d1(x) = 58 - 0,36x
-// --> d2(x) = 124 - 2,19x
+// |------------------------------------|
+// | dist |Voltage| ADC  |	Formula		|
+// |------|-------|------|--------------|
+// |10cm  | 2,6V  | 133  | <--|			|
+// |	  |  	  | 	 |    |--> d1(x)|
+// |45cm  | 0,7V  | 36   | <--|			|
+// |	  |  	  | 	 |    |--> d2(x)|
+// |80cm  | 0,4V  | 20   | <--|			|
+// |------------------------------------|
+// 		--> d1(x) = 58 - 0,36x
+// 		--> d2(x) = 124 - 2,19x
 uint8_t getDistance() {
 	uint16_t val, ret;
+	uint8_t val2;
 	adcStart(10); // Sharp Sensor on ADC10
-	val = adcGet(0);
+	val = adcGet(1); // Start another conversion
+	val2 = adcGet(0); // Finished
+	val = (val + val2) / 2;
 	if (val >= 133) {
 		ret = 80; // 80cm, max distance
 	} else if (val >= 36) {

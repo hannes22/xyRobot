@@ -26,6 +26,8 @@
 #include <adc.h>
 #include <cam.h>
 #include <misc.h>
+#include <mem.h>
+#include <serial.h>
 
 #define CAMDELAY 1
 
@@ -131,7 +133,6 @@ void camInit(uint8_t *regs) {
 		regs[7] = 0x04; // E & V
 		
 		setRegisters(regs);
-		free(regs);
 		regs = NULL;
 	}
 	
@@ -160,6 +161,85 @@ uint8_t camGetByte(void) {
 	result = adcGet(0); // Don't start next conversion
 
 	return result;
+}
+
+uint8_t mirrorBits(uint8_t d) {
+	uint8_t i, v = 0;
+	for (i = 0; i < 8; i++) {
+		if (d & (1 << i)) {
+			v |= (1 << (7 - i));
+		}
+	}
+	return v;
+}
+
+void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
+	uint8_t i, j, m, val, x = mirrorBits(depth);;
+	uint8_t data[8];
+
+	switch (depth) {
+		case 1:
+			m = 8;
+			break;
+		case 2:
+			m = 4;
+			break;
+		case 4:
+			m = 2;
+			break;
+		case 8: default:
+			m = 1;
+			break;
+	}
+
+	if (regs != NULL ) {
+		camInit(regs);
+	}
+
+	// Transmit all the bytes...
+	for (i = 0; i < (16384 / m); i++) {
+		for (j = 0; j < m; j++) {
+			if (regs != NULL) {
+				data[j] = camGetByte();
+			} else {
+				data[j] = memGet((128 * 128 * pos) + (i * m) + j);
+			}
+		}
+
+		switch (depth) {
+			case 1: case 2: case 4:
+				val = 0;
+				for (j = 0; j < m; j++) {
+					val |= (data[j] & x) >> (j * depth);
+				}
+				serialWrite(val);
+				break;
+			case 8: default:
+				serialWrite(data[0]);
+				break;
+		}
+	}
+	if (regs != NULL) {
+		camReset();
+	}
+}
+
+void camSendStoredSerial(uint8_t pos, uint8_t depth) {
+	camSend(NULL, depth, pos);
+}
+
+void camSendSerial(uint8_t *regs, uint8_t depth) {
+	camSend(regs, depth, 0);
+}
+
+void camStore(uint8_t *regs, uint8_t pos) {
+	uint8_t i;
+	if (pos < (MEMSIZE / (128*128))) {
+		camInit(regs);
+		for (i = 0; i < 16384; i++) {
+			memSet((128 * 128 * pos) + i, camGetByte());
+		}
+	}
 }
 
 void camReset(void) {

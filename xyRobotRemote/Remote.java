@@ -282,98 +282,132 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(fastTest)) {
-			serial.writeChar(0x85); // Get fast pic command
-			log("Writing registers.");
-			for (int i = 0; i < 8; i++) {
-				serial.writeChar(registers[i]);
-			}
-			log("Getting picture data");
-			canvas.setDataSmall(serial.readData((128 * 128) / 2));
-			log("Getting distance");
-			setDistanceView();
-			log("Done!");
-		} else if ((e.getSource().equals(turnRight)) || (e.getSource().equals(turnLeft))) {
-			serial.writeChar(0x84); // command, degree, dir
-			serial.writeChar((char)Integer.valueOf(degree.getText(), 10).intValue());
-			String temp = "";
-			if (e.getSource().equals(turnRight)) {
-				serial.writeChar(1);
-				temp = "Right";
-			} else {
-				serial.writeChar(0);
-				temp = "Left";
-			}
-			log("Turning " + degree.getText() + "\u00b0 " + temp);
+			fastTestButton();
+		} else if (e.getSource().equals(turnRight)) {
+			turnButton(true);
+		} else if (e.getSource().equals(turnLeft)) {
+			turnButton(false);
 		} else if (e.getSource().equals(drive)) {
-			serial.writeChar(0x83); // command, dist, speed, dir
-			serial.writeChar((char)Integer.valueOf(dist.getText(), 10).intValue());
-			serial.writeChar((char)Integer.valueOf(speed.getText(), 10).intValue());
-			String temp = "";
-			if (reverse.isSelected()) {
-				temp = "Reverse";
-				serial.writeChar(0);
-			} else {
-				serial.writeChar(1);
-				temp = "Forward";
-			}
-			log("Driving " + dist.getText() + "cm with " + speed.getText() + " " + temp);
+			driveButton();
 		} else if (e.getSource().equals(camSettings)) {
-			Registers reg = new Registers(this, registers);
-			reg.setVisible(true);
+			camSettingsButton();
 		} else if (e.getSource().equals(trigger)) {
-			serial.writeChar(0x82); // Get pic command
-			log("Writing registers.");
-			for (int i = 0; i < 8; i++) {
-				serial.writeChar(registers[i]);
-			}
-			log("Getting picture data");
-			canvas.setData(serial.readData(128 * 128));
-			log("Getting distance");
-			setDistanceView();
-			log("Done!");
+			triggerButton();
 		} else if (e.getSource().equals(openPort)) {
-			// Open Port, enable controls
-			if (serial.openPort((String)portSelector.getSelectedItem())) {
-				if (serial.writeChar('?')) {
-					String ver = serial.readLine();
-					if (ver != null) {
-						connectionOpened(ver);
-					} else {
-						// We are too fast, try again...
-						if (serial.writeChar('?')) {
-							ver = serial.readLine();
-							if (ver != null) {
-								connectionOpened(ver);
-							} else {
-								showError("No answer after second attempt!");
-							}
+			openButton();
+		} else if (e.getSource().equals(closePort)) {
+			closeButton();
+		} else if (e.getSource().equals(save)) {
+			saveButton();
+		}
+	}
+
+	private void fastTestButton() {
+		serial.writeChar(0x85); // Get fast pic command
+		log("Writing registers.");
+		for (int i = 0; i < 8; i++) {
+			serial.writeChar(registers[i]);
+		}
+		log("Getting picture data");
+		canvas.setData(serial.readData((128 * 128) / 2), 4);
+		log("Getting distance");
+		setDistanceView();
+		log("Done!");
+	}
+
+	private void triggerButton() {
+		serial.writeChar(0x82); // Get pic command
+		log("Writing registers.");
+		for (int i = 0; i < 8; i++) {
+			serial.writeChar(registers[i]);
+		}
+		log("Getting picture data");
+		canvas.setData(serial.readData(128 * 128), 8);
+		log("Getting distance");
+		setDistanceView();
+		log("Done!");
+	}
+
+	private void turnButton(boolean turnRight) {
+		serial.writeChar(0x84); // command, degree, dir
+		serial.writeChar((char)Integer.valueOf(degree.getText(), 10).intValue());
+		String temp = "";
+		if (turnRight) {
+			serial.writeChar(1);
+			temp = "Right";
+		} else {
+			serial.writeChar(0);
+			temp = "Left";
+		}
+		log("Turning " + degree.getText() + "\u00b0 " + temp);
+	}
+
+	private void driveButton() {
+		serial.writeChar(0x83); // command, dist, speed, dir
+		serial.writeChar((char)Integer.valueOf(dist.getText(), 10).intValue());
+		serial.writeChar((char)Integer.valueOf(speed.getText(), 10).intValue());
+		String temp = "";
+		if (reverse.isSelected()) {
+			temp = "Reverse";
+			serial.writeChar(0);
+		} else {
+			serial.writeChar(1);
+			temp = "Forward";
+		}
+		log("Driving " + dist.getText() + "cm with " + speed.getText() + " " + temp);
+	}
+
+	private void camSettingsButton() {
+		Registers reg = new Registers(this, registers);
+		reg.setVisible(true);
+	}
+
+	private void openButton() {
+		// Open Port, enable controls
+		if (serial.openPort((String)portSelector.getSelectedItem())) {
+			if (serial.writeChar('?')) {
+				String ver = serial.readLine();
+				if (ver != null) {
+					connectionOpened(ver);
+				} else {
+					// We are too fast, try again...
+					if (serial.writeChar('?')) {
+						ver = serial.readLine();
+						if (ver != null) {
+							connectionOpened(ver);
+						} else {
+							showError("No answer after second attempt!");
 						}
 					}
-				} else {
-					showError("Could not send ping!");
 				}
 			} else {
-				showError("Could not open port " + (String)portSelector.getSelectedItem());
+				showError("Could not send ping!");
 			}
-		} else if (e.getSource().equals(closePort)) {
-			if (serial.isOpen())
-				serial.closePort();
-			setControls(false);
-			log("Connection closed.");
-		} else if (e.getSource().equals(save)) {
-			// Render canvas into image
-			JFileChooser chooser = new JFileChooser();
-			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-				String path = chooser.getSelectedFile().getAbsolutePath();
-				if (!path.endsWith(".png")) {
-					path += ".png";
-				}
-				File f = new File(path);
-				try {
-					ImageIO.write(canvas.paintIntoImage(), "png", f);
-				} catch (Exception ex) {
-					showError("Could not write!" + ex.getMessage());
-				}
+		} else {
+			showError("Could not open port " + (String)portSelector.getSelectedItem());
+		}
+	}
+
+	private void closeButton() {
+		if (serial.isOpen())
+			serial.closePort();
+		setControls(false);
+		log("Connection closed.");
+	}
+
+	private void saveButton() {
+		// Render canvas into image
+		JFileChooser chooser = new JFileChooser();
+		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			String path = chooser.getSelectedFile().getAbsolutePath();
+			if (!path.endsWith(".png")) {
+				path += ".png";
+			}
+			File f = new File(path);
+			try {
+				ImageIO.write(canvas.paintIntoImage(), "png", f);
+			} catch (Exception ex) {
+				showError("Could not write!" + ex.getMessage());
 			}
 		}
 	}
