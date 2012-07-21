@@ -29,14 +29,7 @@
 #include <twi.h>
 #include <serial.h>
 
-// First bit: Background light status
-uint8_t lcdStatus;
-uint8_t lcdCharsSent = 0;
-
-#define CHARSTOSEND 10
-#define TIMETOWAIT 100
-
-extern char buffer[64];
+extern char buffer[BUFFERSIZE];
 
 void ledInit() {
     DDRA |= (1 << DDA7) | (1 << DDA6);
@@ -100,7 +93,6 @@ void ledSet(uint8_t id, uint8_t val) {
 }
 
 void lcdInit() {
-	lcdStatus = 1; // first bit set: bg light on
 	lcdPutChar(12); // Clear display
 	lcdPutChar(27); // Command Mode
 	lcdPutChar(79); // Set cursor position
@@ -116,19 +108,9 @@ void lcdSetBackgroundLight(uint8_t status) {
 	lcdPutChar(76);
 	if (status == 0) {
 		lcdPutChar(0);
-		lcdStatus &= ~(1); // reset first bit: bg light off
 	} else {
 		lcdPutChar(1);
-		lcdStatus |= (1); // set first bit
 	}
-}
-
-void lcdFlashBackgroundLight() {
-	// Flashes light, takes 1 second
-	lcdSetBackgroundLight(!(lcdStatus & 1));
-	_delay_ms(500);
-	lcdSetBackgroundLight(!(lcdStatus & 1));
-	_delay_ms(500);
 }
 
 void lcdPutChar(char c) {
@@ -136,6 +118,10 @@ void lcdPutChar(char c) {
 	twiWrite(c);
 	twiStop();
 }
+
+uint8_t lcdCharsSent = 0;
+#define CHARSTOSEND 5
+#define TIMETOWAIT 200
 
 void lcdPutString(char* data) {
 	twiStartWait(LCD_ADDRESS+I2C_WRITE);
@@ -152,7 +138,6 @@ void lcdPutString(char* data) {
 		} else {
 			data++;
 		}
-		_delay_ms(20); // Wait for lcd
 	}
 	twiStop();
 	if (lcdCharsSent >= CHARSTOSEND) {
@@ -199,35 +184,6 @@ uint16_t lcdGetNum(void) {
 			break;
 	}
 	return ret;
-}
-
-uint8_t *serialReadLine(void) {
-	uint8_t ptr = 0;
-	while(1) {
-		if (serialHasChar()) {
-			buffer[ptr] = serialGet();
-			serialWrite(buffer[ptr]);
-			if ((buffer[ptr] == '\n') || (ptr == sizeof(buffer) - 1)) {
-				buffer[ptr] = '\0';
-				return (uint8_t *)buffer;
-			}
-			if (buffer[ptr] != '\r') {
-				// ignore carriage return (\r)
-				if (buffer[ptr] == 8) {
-					// handle backspace
-					ptr--;
-				} else {
-					ptr++;
-				}
-			}
-		}
-	}
-}
-
-uint16_t serialReadNumber(uint8_t base) {
-	uint8_t *s = serialReadLine();
-	uint16_t val = (uint16_t)strtoul((char *)s, NULL, base);
-	return val;
 }
 
 char *byteToString(uint8_t byte) {

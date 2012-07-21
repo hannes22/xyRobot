@@ -23,54 +23,48 @@
 #include <stdint.h>
 #include <mem.h>
 
-#define WRITE PORTK|=(1<<PK4)
-#define READ PORTK&=~(1<<PK4)
-
-#define MEMSIZE ((uint32_t)512 * (uint32_t)1024)
+#include <util/delay.h>
 
 void memInit() {
 	DDRC = 0xFF; // PC Output
 	DDRJ |= 63; // PJ0...PJ5 Output
 	DDRK |= 48; // PK4 + PK5 Output
 
-	PORTJ &= ~(1 << PJ5); // Select first (and only) SRAM
-	// Bank-Switching not yet implemented
+	PORTC = 0;
+	PORTJ &= ~(63);
+	PORTK &= ~(1 << PK5);
 	PORTK |= (1 << PK4); // Read mode
 }
 
-void selectLatch(uint8_t l) {
-	PORTJ &= ~((1 << PJ0) | (1 << PJ1)); // Clear latch selection
-	if (l == 0) {
-		PORTJ |= (1 << PJ0);
-	} else if (l == 1) {
-		PORTJ |= (1 << PJ1);
-	}
-}
-
-void setLatch(uint8_t l, uint8_t d) {
-	selectLatch(l);
-	PORTC = d;
-}
-
 void setAddress(uint32_t a) {
-	setLatch(0, (uint8_t)(a & 0xFF)); // A0 to A7
-	setLatch(1, (uint8_t)((a & 0xFF00) >> 8)); // A8 to A15
-	selectLatch(3); // No latch activated
-	if (a & ((uint32_t)1 << 16)) { // A16
+	PORTJ |= (1 << PJ0); // Latch 1
+	PORTC = (uint8_t)(a & 0xFF); // A0 to A7
+	asm volatile ("nop");
+	PORTJ &= ~(1 << PJ0);
+	PORTJ |= (1 << PJ1); // Latch 2
+	PORTC = (uint8_t)((a & 0xFF00) >> 8); // A8 to A15
+	asm volatile ("nop");
+	PORTJ &= ~(1 << PJ1);
+
+	if (a & 0x10000) { // A16
 		PORTJ |= (1 << PJ2);
 	} else {
 		PORTJ &= ~(1 << PJ2);
 	}
-	if (a & ((uint32_t)1 << 17)) { // A17
+
+	if (a & 0x20000) { // A17
 		PORTJ |= (1 << PJ3);
 	} else {
 		PORTJ &= ~(1 << PJ3);
 	}
-	if (a & ((uint32_t)1 << 18)) { // A18
+
+	if (a & 0x40000) { // A18
 		PORTJ |= (1 << PJ4);
 	} else {
 		PORTJ &= ~(1 << PJ4);
 	}
+
+	PORTK ^= (1 << PK5); // Toggle led
 }
 
 uint8_t memGet(uint32_t a) {
@@ -81,9 +75,9 @@ uint8_t memGet(uint32_t a) {
 	}
 	setAddress(a);
 	DDRC = 0; // Input
+	asm volatile ("nop");
 	val = PINC;
 	DDRC = 0xFF; // Output again
-	PORTK ^= (1 << PK5); // Toggle led
 	return val;
 }
 
@@ -95,5 +89,19 @@ void memSet(uint32_t a, uint8_t d) {
 	PORTK &= ~(1 << PK4); // Write mode
 	PORTC = d;
 	PORTK |= (1 << PK4); // Back to read mode
-	PORTK ^= (1 << PK5); // Toggle led
+}
+
+uint8_t memCalcErrorRate(void) {
+	uint32_t i, val, errors = 0, calc;
+
+	for (i = 0; i < (MEMSIZE - 1); i++) {
+		val = i % 256;
+		memSet(i, val);
+		if (memGet(i) != val) {
+			errors++;
+		}
+	}
+	calc = 100 * errors;
+	calc = calc / (MEMSIZE - 1);
+	return (uint8_t)calc;
 }

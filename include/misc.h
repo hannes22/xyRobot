@@ -31,14 +31,10 @@ void ledFlash(void);
 
 void lcdInit(void);
 void lcdSetBackgroundLight(uint8_t status);
-void lcdFlashBackgroundLight(void);
 void lcdPutChar(char c);
 void lcdPutString(char* s);
 uint8_t lcdGetChar(void);
 uint16_t lcdGetNum(void);
-
-uint8_t *serialReadLine(void);
-uint16_t serialReadNumber(uint8_t base);
 
 // Uses buffer[] as return value.
 char *byteToString(uint8_t byte);

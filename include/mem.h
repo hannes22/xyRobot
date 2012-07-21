@@ -19,6 +19,14 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef mem_h_
+#define mem_h_
+
+#define MEMSIZE 0x00080000
+
 void memInit(void);
 uint8_t memGet(uint32_t a);
 void memSet(uint32_t a, uint8_t d);
+uint8_t memCalcErrorRate(void); // Returns (0-100) in percent
+
+#endif

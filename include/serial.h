@@ -22,6 +22,8 @@
 #ifndef serial_h_
 #define serial_h_
 
+#include <time.h>
+
 // RX & TX buffer size in bytes
 #define RX_BUFFER_SIZE 512
 #define TX_BUFFER_SIZE 512
@@ -34,15 +36,16 @@
 #define NONE 0
 
 uint8_t serialInit(uint16_t baud, uint8_t databits, uint8_t parity, uint8_t stopbits);
+void serialClose(void);
 
 uint8_t serialHasChar(void);
 uint8_t serialGet(void);
-
-// 1 if space remaining, 0 if full
-uint8_t serialBufferSpaceRemaining(void);
+uint8_t serialBufferSpaceRemaining(void); // 1 if space remaining, 0 if full
 void serialWrite(uint8_t data);
 void serialWriteString(char *data);
 
-void serialClose(void);
+uint8_t *serialReadLine(void);
+uint8_t *serialReadLineTimeout(time_t timeout);
+uint16_t serialReadNumber(uint8_t base);
 
 #endif /* SERIAL_H_ */

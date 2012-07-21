@@ -17,7 +17,7 @@
 # To rebuild project do "make clean" then "make all".
 #
 
-#CDEFS = -D DEBUG
+CDEFS = -DBUFFERSIZE=128
 
 # MCU name
 MCU = atmega2560

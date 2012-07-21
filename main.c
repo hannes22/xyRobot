@@ -29,12 +29,12 @@
 #include <avr/pgmspace.h>
 
 #include <twi.h>
+#include <time.h>
 #include <serial.h>
 #include <motor.h>
 #include <misc.h>
 #include <adc.h>
 #include <cam.h>
-#include <time.h>
 #include <mem.h>
 
 // Remember: Strings to the lcd should not end with \n
@@ -48,40 +48,47 @@
 // LED 0 & 1 used as motor display.
 // LEd 2 should be free...
 
-char buffer[128]; // Used as global string buffer
+char buffer[BUFFERSIZE]; // Used as global string buffer
 char versionString[] PROGMEM = "xyRobot BETA\n";
 
-#define MENUMSGS 5
-#define MENU0 0
-#define MENU1 1
-#define MENU2 2
-#define MENU3 3
-#define MENU4 4
+#define MENUMSGS 6
+
+#define MENU_MAIN 0
+#define MENU_BT 1
+#define MENU_RAM 2
+#define MENU_DRIVE 3
+#define MENU_SERVO 4
+#define MENU_CAM 5
+
 char messageA[] PROGMEM = "\nxyRobot Beta";
-char messageB[] PROGMEM = "\n1) Driving";
-char messageC[] PROGMEM = "\n2) Camera";
-char messageD[] PROGMEM = "\n3) Bluetooth";
+char messageB[] PROGMEM = "\n1) Bluetooth";
+char messageC[] PROGMEM = "\n2) SRAM";
+char messageD[] PROGMEM = "\n3) Driving";
 char messageE[] PROGMEM = "\n4) Servos";
-PGM_P menuMessages[MENUMSGS] PROGMEM = { messageA, messageB, messageC, messageD, messageE };
+char messageF[] PROGMEM = "\n5) Camera";
+PGM_P menuMessages[MENUMSGS] PROGMEM = { messageA, messageB, messageC, messageD, messageE, messageF };
 
 char nextPageString[] PROGMEM = "\n0) Next page";
 
-uint8_t page = 0, menu = MENU0;
+uint8_t page = 0, menu = MENU_MAIN;
 
 uint8_t upDownPos = MIDDLE;
 uint8_t leftRightPos = CENTER;
+
+uint8_t bluetoothConnected = 0;
+char bluetoothPartner[15];
 
 void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
 void sendCamPic(void);
 void sendFastCamPic(void);
+void readBluetoothPartner(void);
 
 int main(void) {
 
 	ledInit();
 	ledToggle(2);
-
 	driveInit();
 	twiInit();
 	lcdInit();
@@ -89,16 +96,10 @@ int main(void) {
 	adcInit();
 	camInitPorts();
 	memInit();
-
-	// initSystemTimer(); // Not used. Heavy cpu usage...
-
-	ledToggle(2);
-
+	initSystemTimer();
 	sei();
-
-	printMenu(MENU0); // Print Menu for the first time
-
-	serialWriteString("Initialized!\n");
+	printMenu(MENU_MAIN); // Print Menu for the first time
+	ledToggle(2);
 
 	while(1) {
 		menuHandler();
@@ -111,7 +112,7 @@ int main(void) {
 }
 
 void printMenu(uint8_t menu) {
-	if (menu == MENU0) {
+	if (menu == MENU_MAIN) {
 		if ((page * 3) < MENUMSGS) {
 			strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[page * 3])));
 			lcdPutString(buffer);
@@ -130,25 +131,54 @@ void printMenu(uint8_t menu) {
 		}
 		strcpy_P(buffer, nextPageString);
 		lcdPutString(buffer);
-	} else if (menu == MENU1) {
+	} else if (menu == MENU_DRIVE) {
 		// Driving
 		lcdPutString("\n1) Forwards\n2) Backwards\n3) Turn\n0) Main Menu");
-	} else if (menu == MENU2) {
+	} else if (menu == MENU_CAM) {
 		// Camera
-	} else if (menu == MENU3) {
+		lcdPutString("\n1) Store pic\n2) Send pic\n\n0) Main Menu");
+	} else if (menu == MENU_BT) {
 		// Bluetooth
-	} else if (menu == MENU4) {
+		if (bluetoothConnected) {
+			lcdPutString("\nCon: ");
+			lcdPutString(bluetoothPartner);
+			lcdPutString("\n\n\n0) Main Menu");
+		} else {
+			lcdPutString("\nBluetooth Ready!");
+
+			lcdPutString("\nName: ");
+			serialWriteString("ATN?\r");
+			serialReadLineTimeout(150); // "Name\r\n"
+			lcdPutString(buffer);
+			serialReadLineTimeout(150); // "OK\r\n"
+
+			lcdPutString("\nPin: ");
+			serialWriteString("\rATP?\r");
+			serialReadLineTimeout(150); // "Pin\r\n"
+			lcdPutString(buffer);
+			serialReadLineTimeout(150); // "OK\r\n"
+
+			lcdPutString("\n0) Main Menu");
+		}
+	} else if (menu == MENU_SERVO) {
 		// Servos
 		lcdPutString("\n1) Left-Right\n3) Up-Down\n\n0) Main Menu");
+	} else if (menu == MENU_RAM) {
+		// SRAM
+		lcdPutString("\nStarting RAM Test...");
+		lcdPutString("Error Rate: ");
+		lcdPutString(byteToString(memCalcErrorRate()));
+		lcdPutString("%");
+		lcdPutString("\n1) Try Again\n0) Main Menu");
 	}
 }
 
 void menuHandler() {
 	uint16_t c = lcdGetChar();
 	uint8_t temp, i = 0;
-	if (menu == MENU0) {
+	if (menu == MENU_MAIN) {
 		if (c == '0') {
-			if ((MENUMSGS / 3) > page) { // There are more entries
+			if (MENUMSGS > ((page + 1) * 3)) { // There are more entries
 				page++;
 			} else {
 				page = 0;
@@ -170,10 +200,10 @@ void menuHandler() {
 				printMenu(menu);
 			}
 		}
-	} else if (menu == MENU1) {
+	} else if (menu == MENU_DRIVE) {
 		// Driving
 		if (c == '0') {
-			menu = MENU0;
+			menu = MENU_MAIN;
 			printMenu(menu);
 		} else if ((c == '1') || (c == '2')) {
 			lcdPutString("\nDistance?");
@@ -197,14 +227,22 @@ void menuHandler() {
 			}
 			printMenu(menu);
 		}
-	} else if (menu == MENU2) {
+	} else if (menu == MENU_CAM) {
 		// Camera
-	} else if (menu == MENU3) {
+		if (c == '0') {
+			menu = MENU_MAIN;
+			printMenu(menu);
+		}
+	} else if (menu == MENU_BT) {
 		// Bluetooth
-	} else if (menu == MENU4) {
+		if (c == '0') {
+			menu = MENU_MAIN;
+			printMenu(menu);
+		}
+	} else if (menu == MENU_SERVO) {
 		// Servos
 		if (c == '0') {
-			menu = MENU0;
+			menu = MENU_MAIN;
 			printMenu(menu);
 		} else if (c == '1') {
 			leftRightPos = lcdGetNum();
@@ -234,11 +272,18 @@ void menuHandler() {
 			leftRightPos = CENTER;
 			upDownPos = MIDDLE;
 		}
+	} else if (menu == MENU_RAM) {
+		// Ram
+		if (c == '0') {
+			menu = MENU_MAIN;
+			printMenu(menu);
+		} else if (c != 0) {
+			printMenu(menu); // Run test again
+		}
 	}
 }
 
 /* Serial commands:
- *
  * '?'						--> Send Version String
  * 0x80, x					--> Move Camera Servo Up/Down to x Degree (from 0 to 180)
  * 0x81, x					--> Move Camera Servo Left/Right to x Degree (from 0 to 180)
@@ -248,7 +293,8 @@ void menuHandler() {
  * 0x85, r1 ... r8			--> Send picture, but use only 4bit per pixel!
  * 0x86						--> Get distance
  *
- * default					--> Send revieced character back
+ * 'C'...					--> Bluetooth "CONNECT"
+ * 'D'...					--> Bluetooth "DISCONNECT"
  */
 
 void remoteHandler() {
@@ -258,41 +304,27 @@ void remoteHandler() {
 	if (serialHasChar()) {
 		c = serialGet();
 		switch(c) {
+		case 'C':
+			readBluetoothPartner();
+			bluetoothConnected = 1;
+			break;
+
+		case 'D':
+			serialReadLine();
+			bluetoothConnected = 0;
+			break;
+
+		case 'E':
+			serialReadLine();
+			break;
+
+		case 'O':
+			serialReadLine();
+			break;
+
 		case '?':
 			strcpy_P(buffer, versionString);
 			serialWriteString(buffer);
-			break;
-
-		case 'w':
-			if (upDownPos <= 175) {
-				upDownPos += 5;
-			}
-			serialWriteString(byteToString(upDownPos));
-			serialWrite('\n');
-			break;
-
-		case 's':
-			if (upDownPos >= 5) {
-				upDownPos -= 5;
-			}
-			serialWriteString(byteToString(upDownPos));
-			serialWrite('\n');
-			break;
-
-		case 'd':
-			if (leftRightPos <= 175) {
-				leftRightPos += 5;
-			}
-			serialWriteString(byteToString(leftRightPos));
-			serialWrite('\n');
-			break;
-
-		case 'a':
-			if (leftRightPos >= 5) {
-				leftRightPos -= 5;
-			}
-			serialWriteString(byteToString(leftRightPos));
-			serialWrite('\n');
 			break;
 
 		case 0x80:
@@ -347,12 +379,44 @@ void remoteHandler() {
 		case 0x86:
 			serialWrite(getDistance());
 			break;
-
-		default:
-			serialWrite(c);
-			break;
 		}
 	}
+}
+
+void readBluetoothPartner() {
+	uint8_t toRead;
+	time_t startTime = getSystemTime();
+
+	toRead = 9; // "ONNECT  '"
+	while (toRead > 0) {
+		if (serialHasChar()) {
+			serialGet();
+			toRead--;
+		}
+		if (diffTime(startTime, getSystemTime()) > 1000) {
+			bluetoothPartner[0] = 'T';
+			bluetoothPartner[1] = 'M';
+			bluetoothPartner[2] = 'T';
+			bluetoothPartner[3] = '\0';
+			return;
+		}
+	}
+
+	toRead = 14;
+	while (toRead > 0) {
+		if (serialHasChar()) {
+			bluetoothPartner[14 - toRead] = serialGet();
+		}
+		if (diffTime(startTime, getSystemTime()) > 1000) {
+			bluetoothPartner[0] = 'T';
+			bluetoothPartner[1] = 'M';
+			bluetoothPartner[2] = 'T';
+			bluetoothPartner[3] = '\0';
+			return;
+		}
+	}
+	bluetoothPartner[14] = '\0';
+	serialReadLineTimeout(1000);
 }
 
 void sendCamPic() {

@@ -19,7 +19,14 @@
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef time_h_
+#define time_h_
+
+typedef uint64_t time_t;
+
 void initSystemTimer(void);
-uint64_t getSystemTimeMicro(void);
-uint64_t getSystemTimeMilli(void);
-uint64_t getSystemTimeSeconds(void);
+time_t getSystemTime(void);
+time_t getSystemTimeSeconds(void);
+time_t diffTime(time_t a, time_t b);
+
+#endif

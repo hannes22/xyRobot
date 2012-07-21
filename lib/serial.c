@@ -22,8 +22,53 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <serial.h>
+#include <time.h>
+
+extern char buffer[BUFFERSIZE];
+
+uint8_t *serialReadLine(void) {
+	return serialReadLineTimeout(0);
+}
+
+uint8_t *serialReadLineTimeout(time_t timeout) {
+	uint8_t ptr = 0;
+	time_t startTime = getSystemTime();
+
+	while(1) {
+		if (serialHasChar()) {
+			buffer[ptr] = serialGet();
+			serialWrite(buffer[ptr]);
+			if ((buffer[ptr] == '\n') || (ptr == sizeof(buffer) - 1)) {
+				buffer[ptr] = '\0';
+				return (uint8_t *)buffer;
+			}
+			if (buffer[ptr] != '\r') {
+				// ignore carriage return (\r)
+				if (buffer[ptr] == 8) {
+					// handle backspace
+					ptr--;
+				} else {
+					ptr++;
+				}
+			}
+		}
+		if (timeout != 0) {
+			if (diffTime(startTime, getSystemTime()) >= timeout) {
+				buffer[ptr] = '\0';
+				return (uint8_t *)buffer;
+			}
+		}
+	}
+}
+
+uint16_t serialReadNumber(uint8_t base) {
+	uint8_t *s = serialReadLine();
+	uint16_t val = (uint16_t)strtoul((char *)s, NULL, base);
+	return val;
+}
 
 uint8_t volatile rxBuffer[RX_BUFFER_SIZE];
 uint8_t volatile txBuffer[TX_BUFFER_SIZE];

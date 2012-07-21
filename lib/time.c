@@ -31,7 +31,7 @@
 // Count to 250
 // => 1 Interrupt per millisecond
 
-volatile uint64_t systemTime = 0; // Overflows in 500 million years... :)
+volatile time_t systemTime = 0; // Overflows in 500 million years... :)
 
 void initSystemTimer() {
 	TCCR2A |= (1 << WGM21); // CTC Mode
@@ -44,10 +44,18 @@ ISR(TIMER2_COMPA_vect) {
 	systemTime++;
 }
 
-uint64_t getSystemTimeMilli(void) {
+time_t getSystemTime(void) {
 	return systemTime;
 }
 
-uint64_t getSystemTimeSeconds(void) {
+time_t getSystemTimeSeconds(void) {
 	return systemTime / 1000;
+}
+
+time_t diffTime(time_t a, time_t b) {
+	if (a > b) {
+		return a - b;
+	} else {
+		return b - a;
+	}
 }
