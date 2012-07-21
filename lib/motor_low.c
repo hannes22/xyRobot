@@ -65,52 +65,39 @@ void motorInit() {
 
 // Adjust motor speed directly in the timer registers.
 // Doesn't change global vars speedLeft/Right
+#define STEPSIZE 3
 void calcDiff(void) {
 	int32_t diff;
 	uint8_t speed;
 	if ((speedLeft == speedRight) && (speedLeft != 0) && (countRight != countLeft) && (countRight > 1)) {
 		speed = speedLeft;
-		if ((dirGlobal == FORWARD) || (dirGlobal == BACKWARD)) {
-			if (dirGlobal == FORWARD) {
-				diff = (countRight - countLeft);
-			} else {
-				diff = ((countRight * (-1)) - (countLeft * (-1)));
-			}
-			if (diff > 0) {
-				if ((LEFTSP < (speed + 25)) && (LEFTSP < 255)) {
-					LEFTSP++;
-				} else if ((RIGHTSP > 1) && (RIGHTSP > (speed - 25))) {
-					RIGHTSP--;
-				}
-			} else if (diff < 0) {
-				if ((RIGHTSP < (speed + 25)) && (RIGHTSP < 255)) {
-					RIGHTSP++;
-				} else if ((LEFTSP > 1) && (LEFTSP > (speed - 25))) {
-					LEFTSP--;
-				}
-			}
-		} else if ((dirGlobal == TURNLEFT) || (dirGlobal == TURNRIGHT)) {
-            if (dirGlobal == TURNLEFT) {
-				diff = (countRight - (countLeft * (-1)));
-			} else {
-				diff = ((countRight * (-1)) - countLeft);
-			}
-			if (diff > 0) {
-				if ((LEFTSP < (speed + 25)) && (LEFTSP < 255)) {
-					LEFTSP++;
-				} else if ((RIGHTSP > 1) && (RIGHTSP > (speed - 25))) {
-					RIGHTSP--;
-				}
-			} else if (diff < 0) {
-				if ((RIGHTSP < (speed + 25)) && (RIGHTSP < 255)) {
-					RIGHTSP++;
-				} else if ((LEFTSP > 1) && (LEFTSP > (speed - 25))) {
-					LEFTSP--;
-				}
-			}
+
+		if (dirGlobal == FORWARD) {
+			diff = (countRight - countLeft);
+		} else if (dirGlobal == BACKWARD) {
+			diff = ((countRight * (-1)) - (countLeft * (-1)));
+		} else if (dirGlobal == TURNLEFT) {
+			diff = (countRight - (countLeft * (-1)));
+		} else {
+			diff = ((countRight * (-1)) - countLeft);
 		}
+
 		countLeft = 0;
 		countRight = 0;
+
+		if (diff > 0) {
+			if ((LEFTSP < (speed + 25)) && (LEFTSP < (256 - STEPSIZE))) {
+				LEFTSP += STEPSIZE;
+			} else if ((RIGHTSP > STEPSIZE) && (RIGHTSP > (speed - 25))) {
+				RIGHTSP -= STEPSIZE;
+			}
+		} else if (diff < 0) {
+			if ((RIGHTSP < (speed + 25)) && (RIGHTSP < (256 - STEPSIZE))) {
+				RIGHTSP += STEPSIZE;
+			} else if ((LEFTSP > STEPSIZE) && (LEFTSP > (speed - 25))) {
+				LEFTSP -= STEPSIZE;
+			}
+		}
 	}
 }
 
