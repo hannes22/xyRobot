@@ -184,7 +184,7 @@ stub.o: added/stub.S
 .PHONY: clean dbg
 
 clean: 
-	rm -f atmel_def.h bootload.x *.defs *.o *.gas *.mak *.lst *.02x *.map
+	rm -f atmel_def.h bootload.x *.defs *.o *.gas *.mak *.lst *.02x *.map *.elf *.hex
 
 ###
 # generate a dump of the definitions available to the assembler

@@ -367,6 +367,7 @@ clean_list:
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
 	$(REMOVE) $(TARGET).elf
+	$(REMOVE) $(TARGET).hex
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
