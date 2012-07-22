@@ -30,6 +30,9 @@ class DistanceWindow extends JFrame {
 	private JLabel[] l = null;
 	private int max = 0;
 
+	public final int width = 150;
+	public int height;
+
 	private final int lights = 20;
 
 	public DistanceWindow(Remote parent) {
@@ -49,7 +52,8 @@ class DistanceWindow extends JFrame {
 		r = parent;
 		max = maxVal;
 
-		setBounds(1024, 0, 150, 534);
+		height = r.height;
+		setBounds(r.width + r.xOff + r.canvasWin.width, r.yOff, width, height);
 		
 		l = new JLabel[lights];
 		for (int i = 0; i < l.length; i++) {
@@ -57,7 +61,7 @@ class DistanceWindow extends JFrame {
 			l[l.length - 1 - i].setHorizontalAlignment(SwingConstants.CENTER);
 			l[l.length - 1 - i].setOpaque(true);
 			l[l.length - 1 - i].setBackground(Color.GRAY);
-			l[l.length - 1 - i].setBounds(5, 5 + (i * 25), 140, 20);
+			l[l.length - 1 - i].setBounds(5, 5 + (i * ((height - 34) / lights)), (width - 10), (((height - 34) / lights) - 5));
 			add(l[l.length - 1 - i]);
 		}
 

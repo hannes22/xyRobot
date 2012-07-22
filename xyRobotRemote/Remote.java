@@ -31,6 +31,8 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	private final String version = "0.5";
 	public final int width = 512;
 	public final int height = 534;
+	public final int xOff = 50;
+	public final int yOff = 75;
 
 	private PaintCanvas canvas = null;
 
@@ -44,11 +46,11 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 	private JPanel cameraStuff = null;
 	private JButton trigger = null;
+	private JSlider depth = null;
 	private JButton save = null;
 	private JSlider camMoveX = null;
 	private JSlider camMoveY = null;
 	private JButton camSettings = null;
-	private JButton fastTest = null;
 
 	private JPanel driveStuff = null;
 	private JTextField dist = null;
@@ -61,8 +63,8 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	private JButton turnRight = null;
 	private JButton turnLeft = null;
 
-	private CanvasWindow canvasWin = null;
-	private DistanceWindow distanceWin = null;
+	public CanvasWindow canvasWin = null;
+	public DistanceWindow distanceWin = null;
 
 	public SerialCommunicator serial = null;
 
@@ -84,7 +86,12 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 	public Remote() {
 		super("xyRobotRemote");
-		setBounds(512, 0, width, height);
+
+		canvasWin = new CanvasWindow(this);
+		distanceWin = new DistanceWindow(this);
+		serial = new SerialCommunicator(this);
+
+		setBounds(canvasWin.width + xOff, yOff, width, height);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
 		setResizable(false);
@@ -93,6 +100,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
+		canvas.setToRefresh(canvasWin.getCanvas());
 		c.add(canvas);
 
 		status = new JTextArea("Initializing xyRobotRemote...");
@@ -154,21 +162,24 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 		camSettings = new JButton();
 		camSettings.setText("Cam Registers");
-		camSettings.setBounds(60, 50, 140, 30);
+		camSettings.setBounds(60, 85, 140, 30);
 		camSettings.addActionListener(this);
 		cameraStuff.add(camSettings);
 
 		save = new JButton();
 		save.setText("Save image");
-		save.setBounds(60, 85, 140, 30);
+		save.setBounds(60, 120, 140, 30);
 		save.addActionListener(this);
 		cameraStuff.add(save);
 
-		fastTest = new JButton();
-		fastTest.setText("Fast Shoot");
-		fastTest.setBounds(60, 120, 140, 30);
-		fastTest.addActionListener(this);
-		cameraStuff.add(fastTest);
+		depth = new JSlider(0, 3);
+		depth.setValue(3);
+		depth.addChangeListener(this);
+		depth.setBounds(60, 50, 140, 30);
+		depth.setMajorTickSpacing(1);
+		depth.setMajorTickSpacing(1);
+		depth.setPaintTicks(true);
+		cameraStuff.add(depth);
 
 		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 40); // vertical cam movement slider
 		camMoveY.setBounds(5, 15, 60, 205);
@@ -243,13 +254,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		setControls(false); // Turn everything off
 		setVisible(true);
 
-		canvasWin = new CanvasWindow(this);
-		canvas.setToRefresh(canvasWin.getCanvas());
-
-		distanceWin = new DistanceWindow(this);
-
-		serial = new SerialCommunicator(this);
-
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
@@ -271,7 +275,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		degree.setEnabled(open);
 		turnRight.setEnabled(open);
 		turnLeft.setEnabled(open);
-		fastTest.setEnabled(open);
+		depth.setEnabled(open);
 	}
 
 	private void setDistanceView() {
@@ -281,9 +285,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource().equals(fastTest)) {
-			fastTestButton();
-		} else if (e.getSource().equals(turnRight)) {
+		if (e.getSource().equals(turnRight)) {
 			turnButton(true);
 		} else if (e.getSource().equals(turnLeft)) {
 			turnButton(false);
@@ -302,27 +304,40 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		}
 	}
 
-	private void fastTestButton() {
-		serial.writeChar(0x85); // Get fast pic command
-		log("Writing registers.");
-		for (int i = 0; i < 8; i++) {
-			serial.writeChar(registers[i]);
-		}
-		log("Getting picture data");
-		canvas.setData(serial.readData((128 * 128) / 2), 4);
-		log("Getting distance");
-		setDistanceView();
-		log("Done!");
-	}
-
 	private void triggerButton() {
-		serial.writeChar(0x82); // Get pic command
+		int length = 0;
+		switch(depth.getValue()) {
+			case 0:
+				serial.writeChar(0x88);
+				length = 64 * 32;
+				break;
+			case 1:
+				serial.writeChar(0x87);
+				length = 64 * 64;
+				break;
+			case 2:
+				serial.writeChar(0x85);
+				length = 128 * 64;
+				break;
+			case 3:
+				serial.writeChar(0x82);
+				length = 128 * 128;
+				break;
+		}
 		log("Writing registers.");
 		for (int i = 0; i < 8; i++) {
 			serial.writeChar(registers[i]);
 		}
 		log("Getting picture data");
-		canvas.setData(serial.readData(128 * 128), 8);
+		short[] d = serial.readData(length);
+		if (d == null) {
+			if (serial.lastError == serial.TIMEOUT) {
+				showError("Timed out!");
+			} else {
+				showError("Error while reading!");
+			}
+		}
+		canvas.setData(d, 8);
 		log("Getting distance");
 		setDistanceView();
 		log("Done!");
@@ -365,24 +380,8 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	private void openButton() {
 		// Open Port, enable controls
 		if (serial.openPort((String)portSelector.getSelectedItem())) {
-			if (serial.writeChar('?')) {
-				String ver = serial.readLine();
-				if (ver != null) {
-					connectionOpened(ver);
-				} else {
-					// We are too fast, try again...
-					if (serial.writeChar('?')) {
-						ver = serial.readLine();
-						if (ver != null) {
-							connectionOpened(ver);
-						} else {
-							showError("No answer after second attempt!");
-						}
-					}
-				}
-			} else {
-				showError("Could not send ping!");
-			}
+			setControls(true);
+			log("Connected!");
 		} else {
 			showError("Could not open port " + (String)portSelector.getSelectedItem());
 		}
@@ -412,21 +411,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		}
 	}
 
-	private void connectionOpened(String ver) {
-		setControls(true);
-		log("Connected to: " + ver);
-
-		serial.writeChar(0x80);
-		serial.writeChar(180);
-		try {
-			Thread.sleep(500);
-		} catch (Exception e) {}
-		serial.writeChar(0x80);
-		serial.writeChar(181);
-		serial.writeChar(0x81);
-		serial.writeChar(181);
-	}
-
 	public void stateChanged(ChangeEvent e) {
 		// For the sliders
 		if (e.getSource().equals(camMoveY)) {
@@ -445,7 +429,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	}
 
 	public void showError(String error) {
-		System.out.println(error);
 		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
 		log("ERROR: " + error);
 	}
@@ -460,7 +443,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		status.setCaretPosition(status.getDocument().getLength());
 	}
 
-	public static void main (String[] args) {
+	public static void main(String[] args) {
 		Remote r = new Remote();
 	}
 

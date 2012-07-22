@@ -81,7 +81,7 @@ char bluetoothPartner[15];
 void printMenu(uint8_t menu);
 void menuHandler(void);
 void remoteHandler(void);
-void sendCamPic(uint8_t fast);
+void sendCamPic(uint8_t depth);
 void readBluetoothPartner(void);
 
 int main(void) {
@@ -291,6 +291,8 @@ void menuHandler() {
  * 0x84, degree, dir		--> Turn. Dir 1 = right, 0 = left
  * 0x85, r1 ... r8			--> Send picture, but use only 4bit per pixel!
  * 0x86						--> Get distance
+ * 0x87, r1 ... r8			--> Send picture, but use only 2bit per pixel!
+ * 0x88, r1 ... r8			--> Send picture, but use only 1bit per pixel!
  *
  * 'C'...					--> Bluetooth "CONNECT"
  * 'D'...					--> Bluetooth "DISCONNECT"
@@ -345,7 +347,19 @@ void remoteHandler() {
 			break;
 
 		case 0x82:
-			sendCamPic(0);
+			sendCamPic(8);
+			break;
+
+		case 0x85:
+			sendCamPic(4);
+			break;
+
+		case 0x87:
+			sendCamPic(2);
+			break;
+
+		case 0x88:
+			sendCamPic(1);
 			break;
 
 		case 0x83:
@@ -369,10 +383,6 @@ void remoteHandler() {
 				temp2 = LEFT;
 			}
 			turn(temp, temp2);
-			break;
-
-		case 0x85:
-			sendCamPic(1);
 			break;
 
 		case 0x86:
@@ -418,16 +428,12 @@ void readBluetoothPartner() {
 	serialReadLineTimeout(1000);
 }
 
-void sendCamPic(uint8_t fast) {
-	uint16_t i = 0;
+void sendCamPic(uint8_t depth) {
+	uint8_t i = 0;
 	uint8_t reg[8];
 	while (i < 8) {
 		while (!serialHasChar());
 		reg[i++] = serialGet();
 	}
-	if (fast == 0) {
-		camSendSerial(reg, 8);
-	} else {
-		camSendSerial(reg, 4);
-	}
+	camSendSerial(reg, depth);
 }

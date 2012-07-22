@@ -174,7 +174,8 @@ uint8_t mirrorBits(uint8_t d) {
 }
 
 void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
-	uint8_t i, j, m, val, x = mirrorBits(depth);;
+	uint16_t i;
+	uint8_t j, m, val, x = mirrorBits(depth);
 	uint8_t data[8];
 
 	switch (depth) {

@@ -61,6 +61,8 @@ void motorInit() {
 
 	EICRB |= (1 << ISC61) | (1 << ISC60) | (1 << ISC71) | (1 << ISC70); // Rising Edge...
 	EIMSK |= (1 << INT7) | (1 << INT6); // ...activates Interrupts
+
+	motorDirection(BREAK);
 }
 
 // Adjust motor speed directly in the timer registers.

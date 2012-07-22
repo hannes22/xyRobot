@@ -44,46 +44,23 @@ class PaintCanvas extends JPanel {
 		toRefresh = p;
 	}
 
-	public void testPatternA() {
-		for (int x = 0; x < 128; x++) {
-			for (int y = 0; y < 128; y++) {
-				data[x][y] = y * 2;
-			}
-		}
-		repaint();
-	}
-
-	public void testPatternB() {
-		for (int x = 0; x < 128; x++) {
-			for (int y = 0; y < 128; y++) {
-				data[x][y] = x * 2;
-			}
-		}
-		repaint();
-	}
-
-	public void testPatternC() {
-		for (int x = 0; x < 128; x++) {
-			for (int y = 0; y < 128; y++) {
-				data[x][y] = x + y;
-			}
-		}
-		repaint();
-	}
-
 	public void setData(short[] dat) {
 		switch (dat.length) {
-			case (128 * 128): default:
-				setData(dat, 8);
+			case (128 * 128):
+				setData(dat, 1);
 				break;
 			case ((128 * 128) / 2):
-				setData(dat, 4);
-				break;
-			case ((128 * 128) / 4):
 				setData(dat, 2);
 				break;
+			case ((128 * 128) / 4):
+				setData(dat, 4);
+				break;
 			case ((128 * 128) / 8):
-				setData(dat, 1);
+				setData(dat, 8);
+				break;
+
+			default:
+				System.out.println("Data length not valid!");
 				break;
 		}
 	}
@@ -98,27 +75,13 @@ class PaintCanvas extends JPanel {
 	}
 
 	public void setData(short[] dat, int depth) {
-		int maxI = (128 * 128) / depthMax(depth);
-		int maxJ = depthMax(depth);
+		int maxI = (128 * 128) / depth;
 		for (int i = 0; i < maxI; i++) {
-			for (int j = 0; j < maxJ; j++) {
-				setData(((dat[i] & (1 << (7 - j))) << j), (i * maxJ) + j);
+			for (int j = 0; j < depth; j++) {
+				setData(((dat[i] & (1 << (7 - j))) << j), (i * depth) + j);
 			}
 		}
 		repaint();
-	}
-
-	private int depthMax(int depth) {
-		switch (depth) {
-			case 8: default:
-				return 1;
-			case 4:
-				return 2;
-			case 2:
-				return 4;
-			case 1:
-				return 8;
-		}
 	}
 
 	public void setDataSmall(short[] dat) {
