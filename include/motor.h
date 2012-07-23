@@ -69,6 +69,9 @@
 #define OFFSET 5 // #define OFFSET 50
 #define SERVOSTEPWIDTH QUOTIENT
 
+#define PRESCALER (1 << CS01)
+#define SERVODURATION 100
+
 void driveInit(void);
 // dir = FORWARD or BACKWARD
 void drive(uint16_t cm, uint8_t speed, uint8_t dir);

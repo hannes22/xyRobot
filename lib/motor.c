@@ -40,16 +40,6 @@
 #endif
 #endif
 
-volatile uint8_t servoLeftRight = 100;
-volatile uint8_t servoUpDown = 100;
-
-// ISR every 10 microseconds
-
-void driveInit() {
-	motorInit();
-	rotateInit();
-}
-
 // Calc Distances:
 // |------------------------------------|
 // | dist |Voltage| ADC  |	Formula		|
@@ -81,14 +71,25 @@ uint8_t getDistance() {
 	return (uint8_t)ret;
 }
 
+void driveInit() {
+	motorInit();
+	rotateInit();
+}
+
+volatile uint8_t servoLeftRight = 100;
+volatile uint8_t servoUpDown = 100;
+volatile uint8_t timeToKillLeft = SERVODURATION;
+volatile uint8_t timeToKillUp = SERVODURATION;
+
 void rotateInit() {
 	rotateLeftRight(CENTER);
 	rotateUpDown(MIDDLE);
 
 	TCCR0A |= (1 << WGM01); // CTC Mode
-	TCCR0B |= (1 << CS01); // Prescaler: 8
+	TCCR0B |= (PRESCALER); // Prescaler: 8
 	OCR0A = OCRVAL;
 	TIMSK0 |= (1 << OCIE0A); // Enable compare match interrupt
+	// --> ISR every 10 microseconds
 
 	UPDOWNDDR |= (1 << UPDOWNSERVO);
 	LEFTRIGHTDDR |= (1 << LEFTRIGHTSERVO);
@@ -103,34 +104,63 @@ ISR(TIMER0_COMPA_vect) {
 	if (count1 > servoLeftRight) {
 		LEFTRIGHTPORT &= ~(1 << LEFTRIGHTSERVO);
 	} else {
-		LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
+		if (timeToKillLeft > 0) {
+			LEFTRIGHTPORT |= (1 << LEFTRIGHTSERVO);
+		}
 	}
 
 	if (count2 > servoUpDown) {
 		UPDOWNPORT &= ~(1 << UPDOWNSERVO);
 	} else {
-		UPDOWNPORT |= (1 << UPDOWNSERVO);
+		if (timeToKillUp > 0) {
+			UPDOWNPORT |= (1 << UPDOWNSERVO);
+		}
 	}
 
-	if (count1 < COUNTMAX) { // 20ms
+	if (count1 < COUNTMAX) {
 		count1++;
 		count2++;
 	} else {
 		count1 = 0;
 		count2 = 0;
+		if (timeToKillLeft > 0) {
+			timeToKillLeft--;
+		}
+		if (timeToKillUp > 0) {
+			timeToKillUp--;
+		}
+		if ((timeToKillUp == 0) && (timeToKillLeft == 0)) {
+			TCCR0B &= ~(PRESCALER);
+		}
 	}
 }
 
 void rotateLeftRight(uint8_t pos) {
 	uint16_t tmp = (180 - pos) * FACTOR;
 	tmp /= QUOTIENT;
-	servoLeftRight = OFFSET + tmp; // Fix number: (0 - 180) to (50 - 200)
+	tmp += OFFSET; // Fix number: (0 - 180) to (50 - 200)
+	if (servoLeftRight != tmp) {
+		servoLeftRight = tmp;
+		timeToKillLeft = SERVODURATION;
+		if (!(TCCR0B & (PRESCALER))) {
+			// Timer is off
+			TCCR0B |= (PRESCALER);
+		}
+	}
 }
 
 void rotateUpDown(uint8_t pos) {
 	uint16_t tmp = pos * FACTOR;
 	tmp /= QUOTIENT;
-	servoUpDown = OFFSET + tmp;
+	tmp += OFFSET;
+	if (servoUpDown != tmp) {
+		servoUpDown = tmp;
+		timeToKillUp = SERVODURATION;
+		if (!(TCCR0B & (PRESCALER))) {
+			// Timer is off
+			TCCR0B |= (PRESCALER);
+		}
+	}
 }
 
 void drive(uint16_t cm, uint8_t speed, uint8_t dir) {
