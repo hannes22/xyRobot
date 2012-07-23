@@ -174,9 +174,10 @@ uint8_t mirrorBits(uint8_t d) {
 }
 
 void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
-	uint16_t i;
+	uint16_t i, iMax;
 	uint8_t j, m, val, x = mirrorBits(depth);
 	uint8_t data[8];
+	uint32_t memOffset = 128 * 128 * pos;
 
 	switch (depth) {
 		case 1:
@@ -193,17 +194,17 @@ void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
 			break;
 	}
 
-	if (regs != NULL ) {
+	if (regs != NULL) {
 		camInit(regs);
 	}
 
-	// Transmit all the bytes...
-	for (i = 0; i < (16384 / m); i++) {
+	iMax = 16384 / m;
+	for (i = 0; i < iMax; i++) {
 		for (j = 0; j < m; j++) {
 			if (regs != NULL) {
 				data[j] = camGetByte();
 			} else {
-				data[j] = memGet((128 * 128 * pos) + (i * m) + j);
+				data[j] = memGet(memOffset + (i * m) + j);
 			}
 		}
 
@@ -237,7 +238,7 @@ void camStore(uint8_t *regs, uint8_t pos) {
 	uint8_t i;
 	if (pos < (MEMSIZE / (128*128))) {
 		camInit(regs);
-		for (i = 0; i < 16384; i++) {
+		for (i = 0; i < (128 * 128); i++) {
 			memSet((128 * 128 * pos) + i, camGetByte());
 		}
 	}

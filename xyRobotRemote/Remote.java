@@ -253,6 +253,8 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 		setControls(false); // Turn everything off
 		setVisible(true);
+		canvasWin.setVisible(true);
+		distanceWin.setVisible(true);
 
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
@@ -336,11 +338,12 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 			} else {
 				showError("Error while reading!");
 			}
+		} else {
+			canvas.setData(d, 8);
+			log("Getting distance");
+			setDistanceView();
+			log("Done!");
 		}
-		canvas.setData(d, 8);
-		log("Getting distance");
-		setDistanceView();
-		log("Done!");
 	}
 
 	private void turnButton(boolean turnRight) {

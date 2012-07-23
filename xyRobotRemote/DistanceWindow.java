@@ -64,8 +64,6 @@ class DistanceWindow extends JFrame {
 			l[l.length - 1 - i].setBounds(5, 5 + (i * ((height - 34) / lights)), (width - 10), (((height - 34) / lights) - 5));
 			add(l[l.length - 1 - i]);
 		}
-
-		setVisible(true);
 	}
 
 	public void setVal(int val) {
