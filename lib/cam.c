@@ -31,8 +31,6 @@
 
 #define CAMDELAY 1
 
-void camShoot(void);
-
 void setClock(uint8_t load) {
 	_delay_us(2);
 	if (load == 1) {
@@ -106,17 +104,16 @@ uint8_t camCanRead(void) {
 	return ((CAMPIN & (1 << CAMREAD)) != 0);
 }
 
-void camInitPorts(void) {
+void camInit(void) {
 	CAMDDR |= (1 << CAMSTART) | (1 << CAMDATA) | (1 << CAMLOAD) | (1 << CAMRESET) | (1 << CAMCLOCK);
 	CAMDDR &= ~(1 << CAMREAD);
 	CAMPORT &= ~((1 << CAMCLOCK) | (1 << CAMDATA) | (1 << CAMSTART) | (1 << CAMLOAD));
 	CAMPORT |= (1 << CAMRESET);
 }
 
-void camInit(uint8_t *regs) {
+void camShoot(uint8_t *regs) {
 	// Initialize camera with given settings register (8 byte array). Automatically shoots a picture
 
-	camInitPorts();
 	reset();
 	
 	if (regs != NULL) {
@@ -136,11 +133,6 @@ void camInit(uint8_t *regs) {
 		regs = NULL;
 	}
 	
-	camShoot();
-}
-
-void camShoot(void) {
-	// Start shooting a picture
 	camStart();
 	camWait();
 }
@@ -151,7 +143,7 @@ uint8_t camGetByte(void) {
 	uint8_t result;
 
 	if (!camCanRead()) {
-		camShoot();
+		camShoot(NULL);
 	}
 
 	setClock(1);
@@ -173,9 +165,9 @@ uint8_t mirrorBits(uint8_t d) {
 	return v;
 }
 
-void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
+void camSendStored(uint8_t pos, uint8_t depth) {
 	uint16_t i, iMax;
-	uint8_t j, m, val, x = mirrorBits(depth);
+	uint8_t j = 0, m = 1, val, x = mirrorBits(depth);
 	uint8_t data[8];
 	uint32_t memOffset = 128 * 128 * pos;
 
@@ -189,23 +181,15 @@ void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
 		case 4:
 			m = 2;
 			break;
-		case 8: default:
+		case 8:
 			m = 1;
 			break;
 	}
 
-	if (regs != NULL) {
-		camInit(regs);
-	}
-
-	iMax = 16384 / m;
+	iMax = (128 * 128) / m;
 	for (i = 0; i < iMax; i++) {
 		for (j = 0; j < m; j++) {
-			if (regs != NULL) {
-				data[j] = camGetByte();
-			} else {
-				data[j] = memGet(memOffset + (i * m) + j);
-			}
+			data[j] = memGet(memOffset + (i * m) + j);
 		}
 
 		switch (depth) {
@@ -221,30 +205,15 @@ void camSend(uint8_t *regs, uint8_t depth, uint8_t pos) {
 				break;
 		}
 	}
-	if (regs != NULL) {
-		camReset();
-	}
-}
-
-void camSendStoredSerial(uint8_t pos, uint8_t depth) {
-	camSend(NULL, depth, pos);
-}
-
-void camSendSerial(uint8_t *regs, uint8_t depth) {
-	camSend(regs, depth, 0);
 }
 
 void camStore(uint8_t *regs, uint8_t pos) {
-	uint8_t i;
-	if (pos < (MEMSIZE / (128*128))) {
-		camInit(regs);
+	uint16_t i;
+	if (pos < (MEMSIZE / (128 * 128))) {
+		camShoot(regs);
 		for (i = 0; i < (128 * 128); i++) {
 			memSet((128 * 128 * pos) + i, camGetByte());
 		}
 	}
 }
 
-void camReset(void) {
-	// Reset camera, so you can load other settings
-	reset();
-}

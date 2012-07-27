@@ -93,7 +93,7 @@ int main(void) {
 	lcdInit();
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
 	adcInit();
-	camInitPorts();
+	camInit();
 	memInit();
 	initSystemTimer();
 	sei();
@@ -436,7 +436,6 @@ void sendCamPic(uint8_t depth) {
 		reg[i++] = serialGet();
 	}
 
-	camSendSerial(reg, depth);
-	// camStore(reg, 0);
-	// camSendStoredSerial(0, depth);
+	camStore(reg, 31);
+	camSendStored(31, depth);
 }
