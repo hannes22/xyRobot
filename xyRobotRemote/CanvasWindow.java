@@ -31,6 +31,7 @@ class CanvasWindow extends JFrame {
 
 	public final int width = 512;
 	public final int height = 534;
+	public final int xOff = 50;
 
 	public CanvasWindow(Remote parent) {
 		super("Camera Viewer");
@@ -43,9 +44,11 @@ class CanvasWindow extends JFrame {
 		});
 		r = parent;
 
-		setBounds(r.xOff, r.yOff, width, height);
+		setBounds(xOff, r.yOff, width, height);
 		p = new PaintCanvas(128, 128, (width / 128));
 		add(p);
+
+		setVisible(true);
 	}
 
 	public PaintCanvas getCanvas() {

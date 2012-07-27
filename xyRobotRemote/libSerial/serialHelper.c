@@ -84,7 +84,7 @@ JNIEXPORT jshortArray JNICALL Java_HelperUtility_readDataNative(JNIEnv *env, jcl
 	unsigned char *data = (char *)malloc(length * sizeof(char));
 	jshort *data2 = (jshort *)malloc(length * sizeof(jshort));
 	time_t startTime = time(NULL);
-	time_t diff = (length / 2000) + 1;
+	time_t diff = (length / 3000) + 1;
 
 	while (length > 0) {
 		read = serialRead((char *)data + toBeRead, length);

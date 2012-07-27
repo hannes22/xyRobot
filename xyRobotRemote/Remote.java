@@ -26,12 +26,12 @@ import java.awt.event.*;
 import javax.imageio.*;
 import java.io.*;
 
-public class Remote extends JFrame implements ActionListener, ChangeListener {
+public class Remote extends JFrame implements ActionListener, ChangeListener, MouseListener {
 
 	private final String version = "0.5";
 	public final int width = 512;
 	public final int height = 534;
-	public final int xOff = 50;
+	public final int xOff = 562;
 	public final int yOff = 75;
 
 	private PaintCanvas canvas = null;
@@ -87,11 +87,10 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	public Remote() {
 		super("xyRobotRemote");
 
-		canvasWin = new CanvasWindow(this);
 		distanceWin = new DistanceWindow(this);
 		serial = new SerialCommunicator(this);
 
-		setBounds(canvasWin.width + xOff, yOff, width, height);
+		setBounds(xOff, yOff, width, height);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
 		setResizable(false);
@@ -100,7 +99,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
-		canvas.setToRefresh(canvasWin.getCanvas());
+		canvas.addMouseListener(this);
 		c.add(canvas);
 
 		status = new JTextArea("Initializing xyRobotRemote...");
@@ -253,7 +252,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 
 		setControls(false); // Turn everything off
 		setVisible(true);
-		canvasWin.setVisible(true);
 		distanceWin.setVisible(true);
 
 		// Shutdown Hook to close an opened serial port
@@ -458,19 +456,30 @@ public class Remote extends JFrame implements ActionListener, ChangeListener {
 	}
 
 	public void cameraWindowKilled() {
-		canvasWin = new CanvasWindow(this);
-		canvas.setToRefresh(canvasWin.getCanvas());
-		canvasWin.getCanvas().setData(canvas.data);
+		canvasWin = null;
+		canvas.setToRefresh(null);
 	}
 
 	public void registersUpdated(int[] regs) {
 		registers = regs;
 	}
 
-	/* public void mouseClicked(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) {
+		if (e.getSource().equals(canvas)) {
+			if (e.getClickCount() == 2) {
+				if (canvasWin == null) {
+					canvasWin = new CanvasWindow(this);
+					canvas.setToRefresh(canvasWin.getCanvas());
+					canvasWin.getCanvas().setData(canvas.data);
+				}
+			}
+		}
+	}
+
+	public void mousePressed(MouseEvent e) {}
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
-	public void mouseExited(MouseEvent e) {} */
+	public void mouseExited(MouseEvent e) {}
 }
 
 class ShutdownThread implements Runnable {

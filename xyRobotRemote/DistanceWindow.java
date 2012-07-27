@@ -53,7 +53,7 @@ class DistanceWindow extends JFrame {
 		max = maxVal;
 
 		height = r.height;
-		setBounds(r.width + r.xOff + r.canvasWin.width, r.yOff, width, height);
+		setBounds(r.width + r.xOff, r.yOff, width, height);
 		
 		l = new JLabel[lights];
 		for (int i = 0; i < l.length; i++) {
