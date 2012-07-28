@@ -27,6 +27,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 
 #include <twi.h>
 #include <time.h>
@@ -86,6 +87,9 @@ void readBluetoothPartner(void);
 
 int main(void) {
 
+	MCUSR = 0;
+	wdt_disable();
+
 	ledInit();
 	ledToggle(2);
 	driveInit();
@@ -100,17 +104,23 @@ int main(void) {
 	printMenu(MENU_MAIN); // Print Menu for the first time
 	ledToggle(2);
 
+	wdt_enable(WDTO_2S);
+
 	while(1) {
 		menuHandler();
 		remoteHandler();
 
 		rotateUpDown(upDownPos);
 		rotateLeftRight(leftRightPos);
+
+		wdt_reset();
 	}
 	return 0;
 }
 
 void printMenu(uint8_t menu) {
+	uint8_t tmp;
+
 	if (menu == MENU_MAIN) {
 		if ((page * 3) < MENUMSGS) {
 			strcpy_P(buffer, (PGM_P)pgm_read_word(&(menuMessages[page * 3])));
@@ -164,9 +174,13 @@ void printMenu(uint8_t menu) {
 		lcdPutString("\n1) Left-Right\n3) Up-Down\n\n0) Main Menu");
 	} else if (menu == MENU_RAM) {
 		// SRAM
-		lcdPutString("\nStarting RAM Test...");
+		lcdPutString("\n\n\n\nStarting RAM Test...");
+		tmp = memCalcErrorRate();
 		lcdPutString("Error Rate: ");
-		lcdPutString(byteToString(memCalcErrorRate()));
+		lcdPutString(byteToString(tmp));
+		lcdPutString(" ");
+		tmp = memCheckErrorRateAgain();
+		lcdPutString(byteToString(tmp));
 		lcdPutString("%");
 		lcdPutString("\n1) Try Again\n0) Main Menu");
 	}
@@ -296,6 +310,9 @@ void menuHandler() {
  *
  * 'C'...					--> Bluetooth "CONNECT"
  * 'D'...					--> Bluetooth "DISCONNECT"
+ * 'O'...					--> Bluetooth "OK"
+ * 'E'...					--> Bluetooth "ERROR"
+ * 'R'...					--> Read until '\n' then reset (comfortable bootloader usage)
  */
 
 void remoteHandler() {
@@ -311,16 +328,22 @@ void remoteHandler() {
 			break;
 
 		case 'D':
-			serialReadLine();
+			serialReadLineTimeout(250);
 			bluetoothConnected = 0;
 			break;
 
 		case 'E':
-			serialReadLine();
+			serialReadLineTimeout(250);
 			break;
 
 		case 'O':
-			serialReadLine();
+			serialReadLineTimeout(250);
+			break;
+
+		case 'R':
+			serialReadLineTimeout(250);
+			wdt_enable(WDTO_15MS);
+			while(1);
 			break;
 
 		case '?':

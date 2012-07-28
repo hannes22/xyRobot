@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/wdt.h>
 
 #include <adc.h>
 #include <cam.h>
@@ -101,6 +102,7 @@ void camStore(uint8_t *regs, uint8_t pos) {
 		camShoot(regs);
 		for (i = 0; i < (128 * 128); i++) {
 			memSet((128 * 128 * pos) + i, camGetByte());
+			wdt_reset();
 		}
 	}
 }
@@ -128,6 +130,7 @@ void camSendStored(uint8_t pos, uint8_t depth) {
 
 	iMax = (128 * 128) / m;
 	for (i = 0; i < iMax; i++) {
+		wdt_reset();
 		for (j = 0; j < m; j++) {
 			data[j] = memGet(memOffset + (i * m) + j);
 		}

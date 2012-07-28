@@ -28,5 +28,7 @@ void memInit(void);
 uint8_t memGet(uint32_t a);
 void memSet(uint32_t a, uint8_t d);
 uint8_t memCalcErrorRate(void); // Returns (0-100) in percent
+// Read again, without writing, so call memCalcErrorRate() before...
+uint8_t memCheckErrorRateAgain(void);
 
 #endif

@@ -269,7 +269,7 @@ gccversion :
 
 # Program the device.  
 program: $(TARGET).hex
-	$(LOADER) -p $(TARGET).hex -b $(BAUD) -d $(PORT)
+	$(LOADER) -p $(TARGET).hex -b $(BAUD) -d $(PORT) -r 'RESET\n'
 
 
 # Convert ELF to COFF for use in debugging / simulating in AVR Studio or VMLAB.

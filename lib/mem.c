@@ -92,16 +92,27 @@ void memSet(uint32_t a, uint8_t d) {
 }
 
 uint8_t memCalcErrorRate(void) {
-	uint32_t i, val, errors = 0, calc;
+	uint32_t i, val;
 
-	for (i = 0; i < (MEMSIZE - 1); i++) {
+	for (i = 0; i < MEMSIZE; i++) {
 		val = i % 256;
 		memSet(i, val);
+	}
+
+	return memCheckErrorRateAgain();
+}
+
+uint8_t memCheckErrorRateAgain(void) {
+	uint32_t i, val, errors = 0, calc;
+
+	for (i = 0; i < MEMSIZE; i++) {
+		val = i % 256;
 		if (memGet(i) != val) {
 			errors++;
 		}
 	}
+
 	calc = 100 * errors;
-	calc = calc / (MEMSIZE - 1);
+	calc = calc / MEMSIZE;
 	return (uint8_t)calc;
 }
