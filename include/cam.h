@@ -33,10 +33,6 @@
 #define CAMREAD PA0
 #define CAMOUT 11
 
-void camInit(void);
-void camShoot(uint8_t *regs);
-uint8_t camGetByte(void);
-
 void camStore(uint8_t *regs, uint8_t pos); // Store in memory at (pos * 128 * 128)
 void camSendStored(uint8_t pos, uint8_t depth); // Depth in bit/pixel. Possible: 8, 4, 2, 1
 
