@@ -22,7 +22,12 @@
 #ifndef adc_h_
 #define adc_h_
 
-void adcInit(void);
+#define AVCC 0
+#define AREF 1
+#define AINT1 2
+#define AINT2 3
+
+void adcInit(uint8_t ref);
 
 void adcStart(uint8_t channel);
 

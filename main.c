@@ -46,7 +46,7 @@
 // Timer 5 (16bit): Unused
 
 // LED 0 & 1 used as motor display.
-// LEd 2 should be free...
+// LED 2 should be free...
 
 char buffer[BUFFERSIZE]; // Used as global string buffer
 char versionString[] PROGMEM = "xyRobot BETA\n";
@@ -92,7 +92,7 @@ int main(void) {
 	twiInit();
 	lcdInit();
 	serialInit(UART_BAUD_SELECT(38400,16000000L), 8, NONE, 1);
-	adcInit();
+	adcInit(AINT2); // Voltage reference: 2,56V
 	camInit();
 	memInit();
 	initSystemTimer();
@@ -436,6 +436,6 @@ void sendCamPic(uint8_t depth) {
 		reg[i++] = serialGet();
 	}
 
-	camStore(reg, 31);
-	camSendStored(31, depth);
+	camStore(reg, 0);
+	camSendStored(0, depth);
 }

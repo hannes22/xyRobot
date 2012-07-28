@@ -26,7 +26,8 @@ import java.awt.event.*;
 import javax.imageio.*;
 import java.io.*;
 
-public class Remote extends JFrame implements ActionListener, ChangeListener, MouseListener {
+public class Remote extends JFrame implements ActionListener, ChangeListener,
+												MouseListener, KeyListener {
 
 	private final String version = "0.5";
 	public final int width = 512;
@@ -100,6 +101,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 		canvas.setBounds(10, 10, 256, 256);
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
 		canvas.addMouseListener(this);
+		canvas.addKeyListener(this);
 		c.add(canvas);
 
 		status = new JTextArea("Initializing xyRobotRemote...");
@@ -108,12 +110,14 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 		statusScroll = new JScrollPane(status);
 		statusScroll.setBorder(BorderFactory.createLoweredBevelBorder());
 		statusScroll.setBounds(10, 275, 256, 150);
+		statusScroll.addKeyListener(this);
 		c.add(statusScroll);
 
 		serialStuff = new JPanel();
 		serialStuff.setBorder(BorderFactory.createTitledBorder("Serial"));
 		serialStuff.setBounds(275, 5, 215, 95);
 		serialStuff.setLayout(null);
+		serialStuff.addKeyListener(this);
 		c.add(serialStuff);
 
 		String[] ports = HelperUtility.getPorts();
@@ -133,51 +137,66 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 		}
 		portSelector = new JComboBox(ports);
 		portSelector.setBounds(5, 20, 205, 30);
+		portSelector.addKeyListener(this);
 		serialStuff.add(portSelector);
 
 		openPort = new JButton();
 		openPort.setText("Open");
 		openPort.setBounds(5, 55, 100, 30);
 		openPort.addActionListener(this);
+		openPort.addKeyListener(this);
 		serialStuff.add(openPort);
 
 		closePort = new JButton();
 		closePort.setText("Close");
 		closePort.setBounds(105, 55, 100, 30);
 		closePort.addActionListener(this);
+		closePort.addKeyListener(this);
 		serialStuff.add(closePort);
 
 		cameraStuff = new JPanel();
 		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
 		cameraStuff.setBounds(275, 105, 215, 225);
 		cameraStuff.setLayout(null);
+		cameraStuff.addKeyListener(this);
 		c.add(cameraStuff);
 
 		trigger = new JButton();
 		trigger.setText("Shoot Pic");
 		trigger.setBounds(60, 15, 140, 30);
 		trigger.addActionListener(this);
+		trigger.addKeyListener(this);
 		cameraStuff.add(trigger);
 
 		camSettings = new JButton();
 		camSettings.setText("Cam Registers");
-		camSettings.setBounds(60, 85, 140, 30);
+		camSettings.setBounds(60, 95, 140, 30);
 		camSettings.addActionListener(this);
+		camSettings.addKeyListener(this);
 		cameraStuff.add(camSettings);
 
 		save = new JButton();
 		save.setText("Save image");
-		save.setBounds(60, 120, 140, 30);
+		save.setBounds(60, 130, 140, 30);
 		save.addActionListener(this);
+		save.addKeyListener(this);
 		cameraStuff.add(save);
 
 		depth = new JSlider(0, 3);
 		depth.setValue(3);
 		depth.addChangeListener(this);
-		depth.setBounds(60, 50, 140, 30);
+		depth.setBounds(60, 50, 140, 40);
 		depth.setMajorTickSpacing(1);
 		depth.setMajorTickSpacing(1);
 		depth.setPaintTicks(true);
+		java.util.Hashtable<Integer, JLabel> table = new java.util.Hashtable<Integer, JLabel>();
+		table.put(0, new JLabel("1"));
+		table.put(1, new JLabel("2"));
+		table.put(2, new JLabel("4"));
+		table.put(3, new JLabel("8"));
+		depth.setLabelTable(table);
+		depth.setPaintLabels(true);
+		depth.addKeyListener(this);
 		cameraStuff.add(depth);
 
 		camMoveY = new JSlider(JSlider.VERTICAL, 0, 180, 40); // vertical cam movement slider
@@ -186,6 +205,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 		camMoveY.setMajorTickSpacing(45);
 		camMoveY.setMinorTickSpacing(45);
 		camMoveY.setPaintTicks(true);
+		camMoveY.addKeyListener(this);
 		cameraStuff.add(camMoveY);
 
 		camMoveX = new JSlider(0, 180);
@@ -195,59 +215,70 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 		camMoveX.setMajorTickSpacing(45);
 		camMoveX.setMinorTickSpacing(45);
 		camMoveX.setPaintTicks(true);
+		camMoveX.addKeyListener(this);
 		cameraStuff.add(camMoveX);
 
 		driveStuff = new JPanel();
 		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
 		driveStuff.setBounds(275, 330, 215, 100);
 		driveStuff.setLayout(null);
+		driveStuff.addKeyListener(this);
 		c.add(driveStuff);
 
 		dist = new JTextField();
 		dist.setText("100");
 		dist.setBounds(5, 20, 40, 30);
+		dist.addKeyListener(this);
 		driveStuff.add(dist);
 
 		distCM = new JLabel();
 		distCM.setText("cm");
 		distCM.setBounds(45, 20, 20, 30);
+		distCM.addKeyListener(this);
 		driveStuff.add(distCM);
 
 		speed = new JTextField();
 		speed.setText("200");
 		speed.setBounds(70, 20, 40, 30);
+		speed.addKeyListener(this);
 		driveStuff.add(speed);
 
 		reverse = new JCheckBox();
 		reverse.setBounds(115, 20, 30, 30);
+		reverse.addKeyListener(this);
 		driveStuff.add(reverse);
 
 		drive = new JButton();
 		drive.setText("Drive");
 		drive.setBounds(150, 20, 60, 30);
 		drive.addActionListener(this);
+		drive.addKeyListener(this);
 		driveStuff.add(drive);
 
 		degree = new JTextField();
 		degree.setText("180");
 		degree.setBounds(15, 55, 40, 30);
+		degree.addKeyListener(this);
 		driveStuff.add(degree);
 
 		degreeDeg = new JLabel();
 		degreeDeg.setText("\u00b0");
 		degreeDeg.setBounds(55, 55, 30, 30);
+		degreeDeg.addKeyListener(this);
 		driveStuff.add(degreeDeg);
 
 		turnLeft = new JButton();
 		turnLeft.setText("L");
 		turnLeft.setBounds(80, 55, 50, 30);
 		turnLeft.addActionListener(this);
+		turnLeft.addKeyListener(this);
 		driveStuff.add(turnLeft);
 
 		turnRight = new JButton();
 		turnRight.setText("R");
 		turnRight.setBounds(135, 55, 50, 30);
 		turnRight.addActionListener(this);
+		turnRight.addKeyListener(this);
 		driveStuff.add(turnRight);
 
 		setControls(false); // Turn everything off
@@ -463,6 +494,37 @@ public class Remote extends JFrame implements ActionListener, ChangeListener, Mo
 	public void registersUpdated(int[] regs) {
 		registers = regs;
 	}
+
+	private void readFile(String f) {
+		try {
+			FileReader fr = new FileReader(f);
+			BufferedReader br = new BufferedReader(fr);
+			java.util.ArrayList<String> l = new java.util.ArrayList<String>();
+			String str, delimiter = ",\n";
+			while ((str = br.readLine()) != null) {
+				java.util.StringTokenizer t = new java.util.StringTokenizer(str, delimiter);
+				while (t.hasMoreTokens()) {
+					String element = t.nextToken();
+					l.add(element);
+				}
+			}
+			canvas.setData(l.toArray());
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	public void keyTyped(KeyEvent e) {
+		switch (e.getKeyChar()) {
+			case 't':
+				String f = JOptionPane.showInputDialog(this, "File:", "Test", JOptionPane.QUESTION_MESSAGE);
+				readFile(f);
+				break;
+		}
+	}
+
+	public void keyPressed(KeyEvent e) {}
+	public void keyReleased(KeyEvent e) {}
 
 	public void mouseClicked(MouseEvent e) {
 		if (e.getSource().equals(canvas)) {

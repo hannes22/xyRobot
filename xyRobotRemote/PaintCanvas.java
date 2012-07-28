@@ -44,6 +44,14 @@ class PaintCanvas extends JPanel {
 		toRefresh = p;
 	}
 
+	public void setData(Object[] dat) {
+		short[] d = new short[dat.length];
+		for (int i = 0; i < d.length; i++) {
+			d[i] = (short)Integer.valueOf((String)dat[i]).intValue();
+		}
+		setData(d);
+	}
+
 	public void setData(short[] dat) {
 		switch (dat.length) {
 			case (128 * 128):

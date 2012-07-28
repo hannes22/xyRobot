@@ -23,10 +23,28 @@
 #include <stdint.h>
 #include <adc.h>
 
-void adcInit() {
+void adcInit(uint8_t ref) {
 	// Enable ADC Module, start one conversion, wait for finish
 	PRR0 &= ~(1 << PRADC); // Disable ADC Power Reduction (Enable it...)
-	ADMUX = (1 << REFS0) | (1 << ADLAR); // Ref: AVCC, left adjust result
+	ADMUX = (1 << ADLAR); // Left adjust result
+	switch(ref) {
+		case AREF:
+			ADMUX &= ~((1 << REFS1) | (1 << REFS0));
+			break;
+
+		case AVCC:
+			ADMUX &= ~((1 << REFS1) | (1 << REFS0));
+			ADMUX |= (1 << REFS0);
+			break;
+		
+		case AINT1:
+			ADMUX &= ~((1 << REFS1) | (1 << REFS0));
+			ADMUX |= (1 << REFS1);
+			break;
+		case AINT2:
+			ADMUX |= (1 << REFS1) | (1 << REFS0);
+			break;
+	}
 	ADCSRA |= (1 << ADEN) | (1 << ADSC); // Enable ADC, start conversion
 	while (!adcReady());
     adcGet(0); // Don't start another conversion

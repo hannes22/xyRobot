@@ -166,6 +166,11 @@ uint8_t mirrorBits(uint8_t d) {
 }
 
 void camSendStored(uint8_t pos, uint8_t depth) {
+	/* uint16_t i;
+	for (i = 0; i < (128 * 128); i++) {
+		serialWrite(memGet(i));
+	} */
+
 	uint16_t i, iMax;
 	uint8_t j = 0, m = 1, val, x = mirrorBits(depth);
 	uint8_t data[8];
