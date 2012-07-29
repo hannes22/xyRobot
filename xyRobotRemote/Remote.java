@@ -291,6 +291,8 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
+		readFile(Remote.class.getResourceAsStream("test.txt"));
+
 		log("Initialized!");
 	}
 
@@ -498,10 +500,23 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		registers = regs;
 	}
 
+	private void readFile(InputStream is) {
+		InputStreamReader isr = new InputStreamReader(is);
+		readFile(isr);
+	}
+
 	private void readFile(String f) {
 		try {
 			FileReader fr = new FileReader(f);
-			BufferedReader br = new BufferedReader(fr);
+			readFile(fr);
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private void readFile(Reader r) {
+		try {
+			BufferedReader br = new BufferedReader(r);
 			java.util.ArrayList<String> l = new java.util.ArrayList<String>();
 			String str, delimiter = ",\n";
 			while ((str = br.readLine()) != null) {
@@ -519,10 +534,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 
 	public void keyTyped(KeyEvent e) {
 		switch (e.getKeyChar()) {
-			case 't':
-				String f = JOptionPane.showInputDialog(this, "Path:", "test/test.txt");
-				readFile(f);
-				break;
+			
 		}
 	}
 

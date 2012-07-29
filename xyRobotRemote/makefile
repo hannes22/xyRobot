@@ -1,4 +1,4 @@
-INJAR = *.class
+INJAR = *.class test.txt
 # Path to jni.h
 ifdef SystemRoot
 RM = del
