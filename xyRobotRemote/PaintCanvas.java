@@ -1,5 +1,5 @@
 /*
- * Remote.java
+ * PaintCanvas.java
  *
  * Copyright 2012 Thomas Buck <xythobuz@me.com>
  *
@@ -52,6 +52,14 @@ class PaintCanvas extends JPanel {
 		setData(d);
 	}
 
+	public void setData(int[] dat) {
+		short[] dat2 = new short[dat.length];
+		for (int i = 0; i < dat.length; i++) {
+			dat2[i] = (short)dat[i];
+		}
+		setData(dat2);
+	}
+
 	public void setData(short[] dat) {
 		switch (dat.length) {
 			case (128 * 128):
@@ -92,10 +100,6 @@ class PaintCanvas extends JPanel {
 		repaint();
 	}
 
-	public void setDataSmall(short[] dat) {
-		setData(dat, 4);
-	}
-
 	public void setData(int[][] dat) {
 		for (int i = 0; i < dat.length; i++) {
 			for (int j = 0; j < dat[i].length; j++) {
@@ -120,15 +124,11 @@ class PaintCanvas extends JPanel {
 		}
 	}
 
-	public void randomize(boolean rand) {
+	public void randomize() {
 		java.util.Random r = new java.util.Random();
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
-				if (rand) {
-					data[i][j] = r.nextInt(256);
-				} else {
-					data[i][j] = 0;
-				}
+				data[i][j] = r.nextInt(256);
 			}
 		}
 		repaint();

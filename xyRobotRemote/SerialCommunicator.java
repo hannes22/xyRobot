@@ -1,5 +1,5 @@
 /*
- * Remote.java
+ * SerialCommunicator.java
  *
  * Copyright 2012 Thomas Buck <xythobuz@me.com>
  *

@@ -1,4 +1,4 @@
-INJAR = *.class test.txt
+INJAR = *.class splash.png
 # Path to jni.h
 ifdef SystemRoot
 RM = del
@@ -25,7 +25,7 @@ endif
 
 # All java files to be compiled
 # List so it works as target
-JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java Registers.java CanvasWindow.java
+JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.java Registers.java CanvasWindow.java ImageTest.java
 
 # --------------------------------------
 

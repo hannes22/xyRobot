@@ -29,7 +29,7 @@ import java.io.*;
 public class Remote extends JFrame implements ActionListener, ChangeListener,
 												MouseListener, KeyListener {
 
-	private final String version = "0.5";
+	private final String version = "0.9";
 	public final int width = 512 + DistanceWindow.width;
 	public final int height = 534;
 	public final int xOff = 562;
@@ -291,7 +291,9 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
-		readFile(Remote.class.getResourceAsStream("test.txt"));
+		ImageTest t = new ImageTest("splash.png");
+		canvas.setData(t.getData());
+		fixImageColor(false); // Converting color-pics leads to dark images...
 
 		log("Initialized!");
 	}
@@ -500,11 +502,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		registers = regs;
 	}
 
-	private void readFile(InputStream is) {
-		InputStreamReader isr = new InputStreamReader(is);
-		readFile(isr);
-	}
-
 	private void readFile(String f) {
 		try {
 			FileReader fr = new FileReader(f);
@@ -512,6 +509,11 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
 		}
+	}
+
+	private void readFile(InputStream is) {
+		InputStreamReader isr = new InputStreamReader(is);
+		readFile(isr);
 	}
 
 	private void readFile(Reader r) {
@@ -532,9 +534,65 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		}
 	}
 
+	private	void printImageStats() {
+		int average = 0, max = 0, min = 256;
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				if (canvas.data[i][j] > max) {
+					max = canvas.data[i][j];
+				}
+				if (canvas.data[i][j] < min) {
+					min = canvas.data[i][j];
+				}
+
+				average += canvas.data[i][j];
+			}
+		}
+		average /= (128 * 128);
+
+		System.out.println("Current Image Statistics:");
+		System.out.println("Average: " + average);
+		System.out.println("Maximum: " + max);
+		System.out.println("Minimum: " + min);
+	}
+
+	private void fixImageColor(boolean print) {
+		int max = 0;
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				if (canvas.data[i][j] > max) {
+					max = canvas.data[i][j];
+				}
+			}
+		}
+		if (max < 255) {
+			double f = (double)255 / (double)max;
+			for (int i = 0; i < 128; i++) {
+				for (int j = 0; j < 128; j++) {
+					canvas.data[i][j] *= f;
+					if (canvas.data[i][j] > 255) {
+						canvas.data[i][j] = 255;
+					}
+				}
+			}
+			canvas.repaint();
+			if (print) System.out.printf("Image fixed. Factor: %.2f\n", f);
+		}
+	}
+
 	public void keyTyped(KeyEvent e) {
 		switch (e.getKeyChar()) {
-			
+			case 'r':
+				canvas.randomize();
+				break;
+
+			case 's':
+				printImageStats();
+				break;
+
+			case 'd':
+				fixImageColor(true);
+				break;
 		}
 	}
 
