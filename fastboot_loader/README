@@ -1,1 +1,11 @@
 bootloader -p SmartIO.hex -d /dev/ttyAM1 -b 115200
+
+So that was the original Readme. Pretty short, right? Let me expand...
+
+Fastboot is an AVR Bootloader written by Peter Dannegger. It was published on the german forum mikrocontroller.net and you can find more infos there:
+http://www.mikrocontroller.net/articles/AVR_Bootloader_FastBoot_von_Peter_Dannegger
+
+H. C. Zimmerer made it possible to compile the bootloader with avr-gcc. That's what I use, you can find it in the "fastboot" folder beside this one. You can also get it here:
+http://www.mikrocontroller.net/topic/146638#1824790
+
+Andreas Butti and Ilya G. Goldber then published their Host-Software for fastboot on avrfreaks.net. I made some minor changes to the code, you can find it in here.

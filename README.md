@@ -10,4 +10,4 @@ xyRobot is the Framework for my Robot. [Visit my website for more informations](
 
 ## xyRobotRemote
 
-xyRobotRemote is a Java App which communicates with the Robot Firmware via Serial. It currently allows you to show a picture shot with the GameBoy Camera mounted on the bot. In the future, you will be able to remote control the robot with this software.
+xyRobotRemote is a Java App which communicates with the Robot Firmware over a serial port. It allows you to shoot pictures with the Gameboy camera and remote-control the robot.
