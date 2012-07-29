@@ -24,14 +24,14 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 
-class DistanceWindow extends JFrame {
+class DistanceWindow extends JPanel {
 
 	private Remote r = null;
 	private JLabel[] l = null;
 	private int max = 0;
 
-	public final int width = 150;
-	public int height;
+	public static final int width = 150;
+	public static int height;
 
 	private final int lights = 20;
 
@@ -41,19 +41,11 @@ class DistanceWindow extends JFrame {
 
 	public DistanceWindow(Remote parent, int maxVal) {
 		super();
-		setResizable(false);
 		setLayout(null);
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent we) {
-				r.distanceWindowKilled();
-				dispose();
-			}
-		});
 		r = parent;
 		max = maxVal;
 
 		height = r.height;
-		setBounds(r.width + r.xOff, r.yOff, width, height);
 		
 		l = new JLabel[lights];
 		for (int i = 0; i < l.length; i++) {

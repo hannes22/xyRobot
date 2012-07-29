@@ -46,10 +46,6 @@ public class GameboyImageTest {
 		}
 	}
 
-	void convertData(int depth) {
-		
-	}
-
 	void writeData(String file) {
 		try {
 			FileWriter fw = new FileWriter(file);
@@ -72,12 +68,11 @@ public class GameboyImageTest {
 
 	public static void main (String[] args) {
 		if (args.length != 3) {
-			System.out.println("Usage: GameboyImageTest image.png depth out.txt");
+			System.out.println("Usage: GameboyImageTest image.png out.txt");
 			System.exit(1);
 		}
 
 		GameboyImageTest gb = new GameboyImageTest(args[0]);
-		gb.convertData(Integer.valueOf(args[1]).intValue());
-		gb.writeData(args[2]);
+		gb.writeData(args[1]);
 	}
 }

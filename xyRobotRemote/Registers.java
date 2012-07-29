@@ -73,9 +73,11 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JTextArea tutorial = null;
 	private JButton default1 = null;
 	private JButton default2 = null;
+	private JButton default3 = null;
 
 	private final int default1Data[] = { 0x00, 0x03, 0x00, 0x01, 0x01, 0x00, 0x01, 0x04 };
 	private final int default2Data[] = { 0x7F, 0x02, 0x00, 0x5A, 0x01, 0x00, 0x01, 0x04 };
+	private final int default3Data[] = { 0x80, 0xD6, 0x06, 0x00, 0x01, 0x00, 0x01, 0x07 };
 
 	public Registers(Remote f, int[] regs) {
 		this(f);
@@ -117,21 +119,27 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 
 		convertToNice = new JButton();
 		convertToNice.setText("<--");
-		convertToNice.setBounds(195, 145, 60, 30);
+		convertToNice.setBounds(195, 135, 60, 30);
 		convertToNice.addActionListener(this);
 		add(convertToNice);
 
 		default1 = new JButton();
 		default1.setText("Def 1");
-		default1.setBounds(195, 190, 60, 30);
+		default1.setBounds(195, 170, 60, 30);
 		default1.addActionListener(this);
 		add(default1);
 
 		default2 = new JButton();
 		default2.setText("Def 2");
-		default2.setBounds(195, 225, 60, 30);
+		default2.setBounds(195, 205, 60, 30);
 		default2.addActionListener(this);
 		add(default2);
+
+		default3 = new JButton();
+		default3.setText("Def 3");
+		default3.setBounds(195, 240, 60, 30);
+		default3.addActionListener(this);
+		add(default3);
 
 		regView = new JPanel();
 		regView.setBorder(BorderFactory.createLoweredBevelBorder());
@@ -573,6 +581,9 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 			convertValsToSettings();
 		} else if (e.getSource().equals(default2)) {
 			setRegFields(default2Data);
+			convertValsToSettings();
+		} else if (e.getSource().equals(default3)) {
+			setRegFields(default3Data);
 			convertValsToSettings();
 		} else if (e.getSource().equals(convertToNice)) {
 			convertValsToSettings();

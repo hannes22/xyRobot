@@ -30,7 +30,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 												MouseListener, KeyListener {
 
 	private final String version = "0.5";
-	public final int width = 512;
+	public final int width = 512 + DistanceWindow.width;
 	public final int height = 534;
 	public final int xOff = 562;
 	public final int yOff = 75;
@@ -88,7 +88,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	public Remote() {
 		super("xyRobotRemote");
 
-		distanceWin = new DistanceWindow(this);
 		serial = new SerialCommunicator(this);
 
 		setBounds(xOff, yOff, width, height);
@@ -96,6 +95,10 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		setLayout(null);
 		setResizable(false);
 		Container c = getContentPane();
+
+		distanceWin = new DistanceWindow(this);
+		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		c.add(distanceWin);
 
 		canvas = new PaintCanvas(128, 128, 2);
 		canvas.setBounds(10, 10, 256, 256);
@@ -517,7 +520,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	public void keyTyped(KeyEvent e) {
 		switch (e.getKeyChar()) {
 			case 't':
-				String f = JOptionPane.showInputDialog(this, "File:", "Test", JOptionPane.QUESTION_MESSAGE);
+				String f = JOptionPane.showInputDialog(this, "Path:", "test/test.txt");
 				readFile(f);
 				break;
 		}

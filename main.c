@@ -459,6 +459,6 @@ void sendCamPic(uint8_t depth) {
 		reg[i++] = serialGet();
 	}
 
-	camStore(reg, 0);
-	camSendStored(0, depth);
+	camStore(reg, 31);
+	camSendStored(31, depth);
 }
