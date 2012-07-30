@@ -68,6 +68,8 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JLabel regNames[] = { null, null, null, null, null, null, null, null };
 	private JTextField regVals[] = { null, null, null, null, null, null, null, null };
 
+	private JPanel rightFull = null;
+	private JPanel rightHalf = null;
 	private JPanel centerPanel = null;
 	private JButton convertToRaw = null;
 	private JButton convertToNice = null;
@@ -95,7 +97,8 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		super(f, true);
 		r = f;
 		setTitle("Camera Register Configuration");
-		setSize(410, 450);
+		setSize(440, 450);
+		setMinimumSize(new Dimension(440, 200));
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
@@ -107,25 +110,53 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		setLocationRelativeTo(f);
 
 		Container c = getContentPane();
-		setLayout(new BoxLayout(c, BoxLayout.LINE_AXIS));
+		setLayout(new BoxLayout(c, BoxLayout.X_AXIS));
 
 		stuff = new JPanel();
-		stuff.setPreferredSize(new Dimension(180, 400));
+		stuff.setPreferredSize(new Dimension(170, 400));
 		stuff.setBorder(BorderFactory.createLoweredBevelBorder());
 		stuff.setLayout(new FlowLayout());
 		c.add(stuff);
 
+		rightFull = new JPanel();
+		rightFull.setLayout(new BoxLayout(rightFull, BoxLayout.Y_AXIS));
+		rightFull.setMaximumSize(new Dimension(260, 450));
+		c.add(rightFull);
+
+		rightHalf = new JPanel();
+		rightHalf.setLayout(new BoxLayout(rightHalf, BoxLayout.X_AXIS));
+		rightHalf.setPreferredSize(new Dimension(240, 300));
+		rightHalf.setAlignmentX(0);
+		rightFull.add(rightHalf);
+
+		tutorial = new JLabel();
+		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
+		// HTML text has auto line-wrapping
+		tutorial.setText("<html>After closing this window, the values on the "
+					+ "<b><u>right</u></b> are what is going into the Camera "
+					+ "Registers. If you have used the GUI tools to change the "
+					+ "configuration, press the Arrow-To-The-Right Button to "
+					+ "convert the config.");
+		tutorial.setPreferredSize(new Dimension(240, 120));
+		tutorial.setAlignmentX(0);
+		JScrollPane scroller = new JScrollPane(tutorial,
+						JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+						JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scroller.setPreferredSize(new Dimension(250, 150));
+		scroller.setAlignmentX(0);
+		rightFull.add(scroller);
+
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new GridLayout(0, 1, 5, 5));
 		centerPanel.setMaximumSize(new Dimension(70, 170));
-		stuff.setBorder(BorderFactory.createLoweredBevelBorder());
-		c.add(centerPanel);
+		centerPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+		rightHalf.add(centerPanel);
 
 		regView = new JPanel();
 		regView.setLayout(new GridLayout(0, 2, 5, 5));
 		regView.setMaximumSize(new Dimension(170, 300));
 		regView.setBorder(BorderFactory.createLoweredBevelBorder());
-		c.add(regView);
+		rightHalf.add(regView);
 
 		for (int i = 0; i < 8; i++) {
 			regNames[i] = new JLabel();
@@ -146,14 +177,6 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 			regView.add(regVals[i]);
 		}
 
-		tutorial = new JLabel();
-		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
-		tutorial.setText("<html>After closing this window, the values on the right"
-					+ " are what is going into the Camera Registers. If you have used"
-					+ " the GUI tools to change the configuration, press the "
-					+ "Arrow-To-The-Right Button to convert the config.");
-		// c.add(tutorial, BorderLayout.PAGE_END);
-
 		convertToRaw = new JButton();
 		convertToRaw.setText("-->");
 		convertToRaw.addActionListener(this);
@@ -164,6 +187,10 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		convertToNice.addActionListener(this);
 		centerPanel.add(convertToNice);
 		
+		JButton pad = new JButton();
+		pad.setVisible(false);
+		centerPanel.add(pad);
+
 		default1 = new JButton();
 		default1.setText("Def 1");
 		default1.addActionListener(this);
