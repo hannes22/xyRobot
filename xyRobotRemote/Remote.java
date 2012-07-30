@@ -27,13 +27,14 @@ import javax.imageio.*;
 import java.io.*;
 
 public class Remote extends JFrame implements ActionListener, ChangeListener,
-												MouseListener, KeyListener {
+												MouseListener, KeyListener,
+												ComponentListener {
 
 	private final String version = "0.9";
-	public final int width = 512 + DistanceWindow.width;
-	public final int height = 534;
-	public final int xOff = 562;
-	public final int yOff = 75;
+	public int width = 512 + DistanceWindow.width;
+	public int height = 466;
+	public final int xOff = 0;
+	public final int yOff = 0;
 
 	private PaintCanvas canvas = null;
 
@@ -93,10 +94,10 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		setBounds(xOff, yOff, width, height);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
-		setResizable(false);
+		addComponentListener(this);
 		Container c = getContentPane();
 
-		distanceWin = new DistanceWindow(this);
+		distanceWin = new DistanceWindow(this, 80);
 		distanceWin.setBounds(512, 0, distanceWin.width, height);
 		c.add(distanceWin);
 
@@ -286,7 +287,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 
 		setControls(false); // Turn everything off
 		setVisible(true);
-		distanceWin.setVisible(true);
 
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
@@ -297,6 +297,24 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 
 		log("Initialized!");
 	}
+
+	public void componentResized(ComponentEvent e) {
+		getContentPane().remove(distanceWin);
+		distanceWin = null;
+
+		width = getWidth();
+		height = getHeight();
+
+		distanceWin = new DistanceWindow(this, 80);
+		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		getContentPane().add(distanceWin);
+
+		repaint();
+	}
+
+	public void componentHidden(ComponentEvent e) {}
+	public void componentMoved(ComponentEvent e) {}
+	public void componentShown(ComponentEvent e) {}
 
 	public void setControls(boolean open) {
 		closePort.setEnabled(open);

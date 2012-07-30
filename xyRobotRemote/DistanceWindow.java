@@ -32,8 +32,14 @@ class DistanceWindow extends JPanel {
 
 	public static final int width = 150;
 	public static int height;
+	public final int titlebar = 20;
 
 	private final int lights = 20;
+
+	public DistanceWindow(Remote parent, int maxVal, int val) {
+		this(parent, maxVal);
+		setVal(val);
+	}
 
 	public DistanceWindow(Remote parent) {
 		this(parent, 80);
@@ -53,7 +59,7 @@ class DistanceWindow extends JPanel {
 			l[l.length - 1 - i].setHorizontalAlignment(SwingConstants.CENTER);
 			l[l.length - 1 - i].setOpaque(true);
 			l[l.length - 1 - i].setBackground(Color.GRAY);
-			l[l.length - 1 - i].setBounds(5, 5 + (i * ((height - 34) / lights)), (width - 10), (((height - 34) / lights) - 5));
+			l[l.length - 1 - i].setBounds(5, 5 + (i * ((height - titlebar) / lights)), (width - 10), (((height - titlebar)  / lights) - 5));
 			add(l[l.length - 1 - i]);
 		}
 	}
