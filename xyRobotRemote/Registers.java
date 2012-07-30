@@ -68,9 +68,10 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JLabel regNames[] = { null, null, null, null, null, null, null, null };
 	private JTextField regVals[] = { null, null, null, null, null, null, null, null };
 
+	private JPanel centerPanel = null;
 	private JButton convertToRaw = null;
 	private JButton convertToNice = null;
-	private JTextArea tutorial = null;
+	private JLabel tutorial = null;
 	private JButton default1 = null;
 	private JButton default2 = null;
 	private JButton default3 = null;
@@ -78,6 +79,11 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private final int default1Data[] = { 0x00, 0x03, 0x00, 0x01, 0x01, 0x00, 0x01, 0x04 };
 	private final int default2Data[] = { 0x7F, 0x02, 0x00, 0x5A, 0x01, 0x00, 0x01, 0x04 };
 	private final int default3Data[] = { 0x80, 0xD6, 0x06, 0x00, 0x01, 0x00, 0x01, 0x07 };
+
+	public static void main(String[] args) {
+		Registers registers = new Registers(null);
+		registers.setVisible(true);
+	}
 
 	public Registers(Remote f, int[] regs) {
 		this(f);
@@ -89,63 +95,37 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		super(f, true);
 		r = f;
 		setTitle("Camera Register Configuration");
-		setSize(450, 450);
+		setSize(410, 450);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
-				r.registersUpdated(getRegisters());
+				if (r != null)
+					r.registersUpdated(getRegisters());
 				dispose();
 			}
 		});
 		setLocationRelativeTo(f);
-		setLayout(null);
-		setResizable(false);
 
-		tutorial = new JTextArea();
-		tutorial.setBounds(210, 270, 225, 145);
-		tutorial.setEditable(false);
-		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
-		tutorial.insert(" After closing this window, the\n values on the right"
-					+ " are what is\n going into the Camera Registers.\n If you have used"
-					+ " the GUI tools\n to change the configuration,\n press the "
-					+ "Arrow-To-The-Right\n Button to convert the config.\n", 0);
-		add(tutorial);
+		Container c = getContentPane();
+		setLayout(new BoxLayout(c, BoxLayout.LINE_AXIS));
 
-		convertToRaw = new JButton();
-		convertToRaw.setText("-->");
-		convertToRaw.setBounds(195, 100, 60, 30);
-		convertToRaw.addActionListener(this);
-		add(convertToRaw);
+		stuff = new JPanel();
+		stuff.setPreferredSize(new Dimension(180, 400));
+		stuff.setBorder(BorderFactory.createLoweredBevelBorder());
+		stuff.setLayout(new FlowLayout());
+		c.add(stuff);
 
-		convertToNice = new JButton();
-		convertToNice.setText("<--");
-		convertToNice.setBounds(195, 135, 60, 30);
-		convertToNice.addActionListener(this);
-		add(convertToNice);
-
-		default1 = new JButton();
-		default1.setText("Def 1");
-		default1.setBounds(195, 170, 60, 30);
-		default1.addActionListener(this);
-		add(default1);
-
-		default2 = new JButton();
-		default2.setText("Def 2");
-		default2.setBounds(195, 205, 60, 30);
-		default2.addActionListener(this);
-		add(default2);
-
-		default3 = new JButton();
-		default3.setText("Def 3");
-		default3.setBounds(195, 240, 60, 30);
-		default3.addActionListener(this);
-		add(default3);
+		centerPanel = new JPanel();
+		centerPanel.setLayout(new GridLayout(0, 1, 5, 5));
+		centerPanel.setMaximumSize(new Dimension(70, 170));
+		stuff.setBorder(BorderFactory.createLoweredBevelBorder());
+		c.add(centerPanel);
 
 		regView = new JPanel();
+		regView.setLayout(new GridLayout(0, 2, 5, 5));
+		regView.setMaximumSize(new Dimension(170, 300));
 		regView.setBorder(BorderFactory.createLoweredBevelBorder());
-		regView.setBounds(260, 10, 180, 250);
-		regView.setLayout(null);
-		add(regView);
+		c.add(regView);
 
 		for (int i = 0; i < 8; i++) {
 			regNames[i] = new JLabel();
@@ -160,155 +140,149 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 					regNames[i].setText("Register X:");
 				}
 			}
-			regNames[i].setBounds(15, 5 + (i * 30), 90, 20);
 			regView.add(regNames[i]);
 			regVals[i] = new JTextField();
 			regVals[i].setText("0x00");
-			regVals[i].setBounds(105, 5 + (i * 30), 50, 20);
 			regView.add(regVals[i]);
 		}
 
-		stuff = new JPanel();
-		stuff.setBorder(BorderFactory.createLoweredBevelBorder());
-		stuff.setBounds(10, 10, 180, 400);
-		stuff.setLayout(null);
-		add(stuff);
+		tutorial = new JLabel();
+		tutorial.setBorder(BorderFactory.createLoweredBevelBorder());
+		tutorial.setText("<html>After closing this window, the values on the right"
+					+ " are what is going into the Camera Registers. If you have used"
+					+ " the GUI tools to change the configuration, press the "
+					+ "Arrow-To-The-Right Button to convert the config.");
+		// c.add(tutorial, BorderLayout.PAGE_END);
+
+		convertToRaw = new JButton();
+		convertToRaw.setText("-->");
+		convertToRaw.addActionListener(this);
+		centerPanel.add(convertToRaw);
+
+		convertToNice = new JButton();
+		convertToNice.setText("<--");
+		convertToNice.addActionListener(this);
+		centerPanel.add(convertToNice);
+		
+		default1 = new JButton();
+		default1.setText("Def 1");
+		default1.addActionListener(this);
+		centerPanel.add(default1);
+
+		default2 = new JButton();
+		default2.setText("Def 2");
+		default2.addActionListener(this);
+		centerPanel.add(default2);
+
+		default3 = new JButton();
+		default3.setText("Def 3");
+		default3.addActionListener(this);
+		centerPanel.add(default3);
 
 		NName = new JLabel();
 		NName.setText("Exclusive Edge Mode:");
-		NName.setBounds(5, 5, 140, 20);
 		stuff.add(NName);
 
 		N = new JCheckBox();
-		N.setBounds(145, 5, 30, 20);
 		stuff.add(N);
 
 		VH = new JComboBox(VHs);
-		VH.setBounds(5, 30, 170, 30);
 		stuff.add(VH);
 
 		EName = new JLabel();
-		EName.setText("Edge Enhancement Ratio:");
-		EName.setBounds(5, 65, 170, 20);
+		EName.setText("Edge Enh. Ratio:");
 		stuff.add(EName);
 
 		EVal = new JLabel();
 		EVal.setText("200%");
-		EVal.setBounds(5, 90, 45, 20);
 		stuff.add(EVal);
 
 		E = new JSlider(50, 500);
-		E.setBounds(50, 90, 125, 20);
 		E.addChangeListener(this);
 		E.setValue(50);
 		stuff.add(E);
 
 		EMode1 = new JLabel();
-		EMode1.setText("Extract:");
-		EMode1.setBounds(5, 120, 60, 20);
+		EMode1.setText("Ext.:");
 		stuff.add(EMode1);
 
 		Extraction = new JCheckBox();
-		Extraction.setBounds(50, 120, 30, 20);
 		Extraction.addItemListener(this);
 		Extraction.setSelected(false);
 		stuff.add(Extraction);
 
 		EMode2 = new JLabel();
-		EMode2.setText("Enhance:");
-		EMode2.setBounds(95, 120, 60, 20);
+		EMode2.setText("Enh.:");
 		stuff.add(EMode2);
 
 		Enhancement = new JCheckBox();
-		Enhancement.setBounds(150, 120, 30, 20);
 		Enhancement.addItemListener(this);
 		Enhancement.setSelected(true);
 		stuff.add(Enhancement);
 
 		Z = new JComboBox(Zs);
-		Z.setBounds(5, 145, 170, 30);
 		stuff.add(Z);
 
 		IName = new JLabel();
 		IName.setText("Invert output:");
-		IName.setBounds(5, 170, 140, 20);
 		stuff.add(IName);
 
 		I = new JCheckBox();
-		I.setBounds(145, 170, 30, 20);
 		stuff.add(I);
 
 		CName = new JLabel();
 		CName.setText("Exposure:");
-		CName.setBounds(5, 195, 170, 20);
 		stuff.add(CName);
 
 		CVal = new JLabel();
 		CVal.setText("524ms");
-		CVal.setBounds(5, 220, 55, 20);
 		stuff.add(CVal);
 
 		C = new JSlider(0, 65536);
-		C.setBounds(60, 220, 115, 20);
 		C.addChangeListener(this);
 		C.setValue(524);
 		stuff.add(C);
 
 		OName = new JLabel();
 		OName.setText("Offset Voltage:");
-		OName.setBounds(5, 245, 170, 20);
 		stuff.add(OName);
 
 		OVal = new JLabel();
 		OVal.setText("0V");
-		OVal.setBounds(5, 270, 45, 20);
 		stuff.add(OVal);
 
 		O = new JSlider(-31, 31);
-		O.setBounds(50, 270, 125, 20);
 		O.addChangeListener(this);
 		O.setValue(0);
 		stuff.add(O);
 
 		GName = new JLabel();
 		GName.setText("Gain:");
-		GName.setBounds(5, 295, 170, 20);
 		stuff.add(GName);
 
 		GVal = new JLabel();
 		GVal.setText("22dB");
-		GVal.setBounds(5, 320, 45, 20);
 		stuff.add(GVal);
 
 		G = new JSlider(140, 575);
-		G.setBounds(50, 320, 125, 20);
 		G.addChangeListener(this);
 		G.setValue(140);
 		stuff.add(G);
 
 		VName = new JLabel();
 		VName.setText("Output Voltage:");
-		VName.setBounds(5, 345, 170, 20);
 		stuff.add(VName);
 
 		VVal = new JLabel();
 		VVal.setText("3.5V");
-		VVal.setBounds(5, 370, 45, 20);
 		stuff.add(VVal);
 
 		V = new JSlider(0, 35);
-		V.setBounds(50, 370, 125, 20);
 		V.addChangeListener(this);
 		V.setValue(35);
 		stuff.add(V);
 
 		convertSettingsToVals();
-
-		// Don't do this here, because then the thread gets
-		// suspended until the dialog is closed. We can't run other
-		// statements in another constructor because of this.
-		// Call setVisible in creating Object instead.
-		// setVisible(true);
 	}
 
 	private int getRegVal(int i) {
