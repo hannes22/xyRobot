@@ -157,7 +157,7 @@ char** namesInDev(int *siz) {
 	return files;
 }
 
-char** getSerialPorts(const char *search) { 
+char** getSerialPorts(const char *search) {
 	int size;
 	char** files = namesInDev(&size);
 	char **fin = NULL, **finish = NULL;
