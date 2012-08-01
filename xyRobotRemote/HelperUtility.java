@@ -131,7 +131,7 @@ public class HelperUtility {
 			} else if (os.indexOf("mac") > -1) {
 				return getThePorts("tty.");
 			} else {
-				return getThePorts("tty");
+				return getThePorts("rfcomm");
 			} 
 		} catch (UnsatisfiedLinkError e) {
 			System.out.println("ERROR: Library not loaded! (getPorts)");
