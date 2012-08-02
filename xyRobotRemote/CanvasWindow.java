@@ -43,7 +43,11 @@ class CanvasWindow extends JFrame {
 		});
 		r = parent;
 
-		setBounds(r.getX() - width, r.getY(), width, height);
+		if ((r.getX() - width) < 0) {
+			setBounds(0, r.getY(), width, height);
+		} else {
+			setBounds(r.getX() - width, r.getY(), width, height);
+		}
 		p = new PaintCanvas(128, 128, (width / 128));
 		add(p);
 

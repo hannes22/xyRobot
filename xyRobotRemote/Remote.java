@@ -291,30 +291,27 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
+		log("Rendering Image...");
 		ImageTest t = new ImageTest("splash.png");
 		canvas.setData(t.getData());
 		fixImageColor(false); // Converting color-pics leads to dark images...
-
-		log("Initialized!");
 	}
 
-	public void componentResized(ComponentEvent e) {
-		getContentPane().remove(distanceWin);
-		distanceWin = null;
+	public void keyTyped(KeyEvent e) {
+		switch (e.getKeyChar()) {
+			case 'r':
+				canvas.randomize();
+				break;
 
-		width = getWidth();
-		height = getHeight();
+			case 's':
+				printImageStats();
+				break;
 
-		distanceWin = new DistanceWindow(this, 80);
-		distanceWin.setBounds(512, 0, distanceWin.width, height);
-		getContentPane().add(distanceWin);
-
-		repaint();
+			case 'd':
+				fixImageColor(true);
+				break;
+		}
 	}
-
-	public void componentHidden(ComponentEvent e) {}
-	public void componentMoved(ComponentEvent e) {}
-	public void componentShown(ComponentEvent e) {}
 
 	public void setControls(boolean open) {
 		closePort.setEnabled(open);
@@ -598,22 +595,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		}
 	}
 
-	public void keyTyped(KeyEvent e) {
-		switch (e.getKeyChar()) {
-			case 'r':
-				canvas.randomize();
-				break;
-
-			case 's':
-				printImageStats();
-				break;
-
-			case 'd':
-				fixImageColor(true);
-				break;
-		}
-	}
-
 	public void keyPressed(KeyEvent e) {}
 	public void keyReleased(KeyEvent e) {}
 
@@ -633,6 +614,24 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
+
+	public void componentResized(ComponentEvent e) {
+		getContentPane().remove(distanceWin);
+		distanceWin = null;
+
+		width = getWidth();
+		height = getHeight();
+
+		distanceWin = new DistanceWindow(this, 80);
+		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		getContentPane().add(distanceWin);
+
+		repaint();
+	}
+
+	public void componentHidden(ComponentEvent e) {}
+	public void componentMoved(ComponentEvent e) {}
+	public void componentShown(ComponentEvent e) {}
 }
 
 class ShutdownThread implements Runnable {

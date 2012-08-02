@@ -34,7 +34,7 @@ class DistanceWindow extends JPanel {
 	public static int height;
 	public final int titlebar = 20;
 
-	private final int lights = 20;
+	private int lights = 20;
 
 	public DistanceWindow(Remote parent, int maxVal, int val) {
 		this(parent, maxVal);
@@ -50,8 +50,11 @@ class DistanceWindow extends JPanel {
 		setLayout(null);
 		r = parent;
 		max = maxVal;
-
 		height = r.height;
+
+		while (((height - titlebar) / lights) <= 22) {
+			lights--;
+		}
 		
 		l = new JLabel[lights];
 		for (int i = 0; i < l.length; i++) {
