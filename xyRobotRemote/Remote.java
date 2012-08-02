@@ -297,21 +297,9 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		fixImageColor(false); // Converting color-pics leads to dark images...
 	}
 
-	public void keyTyped(KeyEvent e) {
-		switch (e.getKeyChar()) {
-			case 'r':
-				canvas.randomize();
-				break;
-
-			case 's':
-				printImageStats();
-				break;
-
-			case 'd':
-				fixImageColor(true);
-				break;
-		}
-	}
+	// ------------------------------
+	// |            Misc            |
+	// ------------------------------
 
 	public void setControls(boolean open) {
 		closePort.setEnabled(open);
@@ -337,6 +325,123 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		distanceWin.setVal(dist[0]);
 	}
 
+	public void showError(String error) {
+		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
+		log("ERROR: " + error);
+	}
+
+	public void showInfo(String info) {
+		JOptionPane.showMessageDialog(this, info, "Info", JOptionPane.INFORMATION_MESSAGE);
+		log(info);
+	}
+
+	public void log(String log) {
+		status.append("\n" + log);
+		status.setCaretPosition(status.getDocument().getLength());
+	}
+
+	private void readFile(String f) {
+		try {
+			FileReader fr = new FileReader(f);
+			readFile(fr);
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private void readFile(InputStream is) {
+		InputStreamReader isr = new InputStreamReader(is);
+		readFile(isr);
+	}
+
+	private void readFile(Reader r) {
+		try {
+			BufferedReader br = new BufferedReader(r);
+			java.util.ArrayList<String> l = new java.util.ArrayList<String>();
+			String str, delimiter = ",\n";
+			while ((str = br.readLine()) != null) {
+				java.util.StringTokenizer t = new java.util.StringTokenizer(str, delimiter);
+				while (t.hasMoreTokens()) {
+					String element = t.nextToken();
+					l.add(element);
+				}
+			}
+			canvas.setData(l.toArray());
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private	void printImageStats() {
+		int average = 0, max = 0, min = 256;
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				if (canvas.data[i][j] > max) {
+					max = canvas.data[i][j];
+				}
+				if (canvas.data[i][j] < min) {
+					min = canvas.data[i][j];
+				}
+
+				average += canvas.data[i][j];
+			}
+		}
+		average /= (128 * 128);
+
+		System.out.println("Current Image Statistics:");
+		System.out.println("Average: " + average);
+		System.out.println("Maximum: " + max);
+		System.out.println("Minimum: " + min);
+	}
+
+	private void fixImageColor(boolean print) {
+		int max = 0;
+		for (int i = 0; i < 128; i++) {
+			for (int j = 0; j < 128; j++) {
+				if (canvas.data[i][j] > max) {
+					max = canvas.data[i][j];
+				}
+			}
+		}
+		if (max < 255) {
+			double f = (double)255 / (double)max;
+			for (int i = 0; i < 128; i++) {
+				for (int j = 0; j < 128; j++) {
+					canvas.data[i][j] *= f;
+					if (canvas.data[i][j] > 255) {
+						canvas.data[i][j] = 255;
+					}
+				}
+			}
+			canvas.repaint();
+			if (print) System.out.printf("Image fixed. Factor: %.2f\n", f);
+		}
+	}
+
+	// ------------------------------
+	// | Calls for external windows |
+	// ------------------------------
+
+	public void distanceWindowKilled() {
+		distanceWin = new DistanceWindow(this);
+		if (serial.isOpen()) {
+			setDistanceView();
+		}
+	}
+
+	public void cameraWindowKilled() {
+		canvasWin = null;
+		canvas.setToRefresh(null);
+	}
+
+	public void registersUpdated(int[] regs) {
+		registers = regs;
+	}
+
+	// ------------------------------
+	// |         Listeners          |
+	// ------------------------------
+
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource().equals(turnRight)) {
 			turnButton(true);
@@ -356,6 +461,78 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 			saveButton();
 		}
 	}
+
+	public void keyTyped(KeyEvent e) {
+		switch (e.getKeyChar()) {
+			case 'r':
+				canvas.randomize();
+				break;
+
+			case 's':
+				printImageStats();
+				break;
+
+			case 'd':
+				fixImageColor(true);
+				break;
+		}
+	}
+	public void keyPressed(KeyEvent e) {}
+	public void keyReleased(KeyEvent e) {}
+
+	public void mouseClicked(MouseEvent e) {
+		if (e.getSource().equals(canvas)) {
+			if (e.getClickCount() == 2) {
+				if (canvasWin == null) {
+					canvasWin = new CanvasWindow(this);
+					canvas.setToRefresh(canvasWin.getCanvas());
+					canvasWin.getCanvas().setData(canvas.data);
+				}
+			}
+		}
+	}
+	public void mousePressed(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {}
+
+	public void componentResized(ComponentEvent e) {
+		getContentPane().remove(distanceWin);
+		distanceWin = null;
+
+		width = getWidth();
+		height = getHeight();
+
+		distanceWin = new DistanceWindow(this, 80);
+		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		getContentPane().add(distanceWin);
+
+		repaint();
+	}
+	public void componentHidden(ComponentEvent e) {}
+	public void componentMoved(ComponentEvent e) {}
+	public void componentShown(ComponentEvent e) {}
+
+	public void stateChanged(ChangeEvent e) {
+		// For the sliders
+		if (e.getSource().equals(camMoveY)) {
+			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
+				// New Y-Axis position
+				serial.writeChar(0x80);
+				serial.writeChar(camMoveY.getValue());
+			}
+		} else if (e.getSource().equals(camMoveX)) {
+			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
+				// New X-Axis position
+				serial.writeChar(0x81);
+				serial.writeChar(camMoveX.getValue());
+			}
+		}
+	}
+
+	// ------------------------------
+	// |      Button Handler        |
+	// ------------------------------
 
 	private void triggerButton() {
 		int length = 0;
@@ -465,175 +642,12 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		}
 	}
 
-	public void stateChanged(ChangeEvent e) {
-		// For the sliders
-		if (e.getSource().equals(camMoveY)) {
-			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
-				// New Y-Axis position
-				serial.writeChar(0x80);
-				serial.writeChar(camMoveY.getValue());
-			}
-		} else if (e.getSource().equals(camMoveX)) {
-			if (!((JSlider)e.getSource()).getValueIsAdjusting()) {
-				// New X-Axis position
-				serial.writeChar(0x81);
-				serial.writeChar(camMoveX.getValue());
-			}
-		}
-	}
-
-	public void showError(String error) {
-		JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
-		log("ERROR: " + error);
-	}
-
-	public void showInfo(String info) {
-		JOptionPane.showMessageDialog(this, info, "Info", JOptionPane.INFORMATION_MESSAGE);
-		log(info);
-	}
-
-	public void log(String log) {
-		status.append("\n" + log);
-		status.setCaretPosition(status.getDocument().getLength());
-	}
-
 	public static void main(String[] args) {
 		Remote r = new Remote();
 	}
-
-	public void distanceWindowKilled() {
-		distanceWin = new DistanceWindow(this);
-		if (serial.isOpen()) {
-			setDistanceView();
-		}
-	}
-
-	public void cameraWindowKilled() {
-		canvasWin = null;
-		canvas.setToRefresh(null);
-	}
-
-	public void registersUpdated(int[] regs) {
-		registers = regs;
-	}
-
-	private void readFile(String f) {
-		try {
-			FileReader fr = new FileReader(f);
-			readFile(fr);
-		} catch (Exception e) {
-			System.out.println("Error: " + e.getMessage());
-		}
-	}
-
-	private void readFile(InputStream is) {
-		InputStreamReader isr = new InputStreamReader(is);
-		readFile(isr);
-	}
-
-	private void readFile(Reader r) {
-		try {
-			BufferedReader br = new BufferedReader(r);
-			java.util.ArrayList<String> l = new java.util.ArrayList<String>();
-			String str, delimiter = ",\n";
-			while ((str = br.readLine()) != null) {
-				java.util.StringTokenizer t = new java.util.StringTokenizer(str, delimiter);
-				while (t.hasMoreTokens()) {
-					String element = t.nextToken();
-					l.add(element);
-				}
-			}
-			canvas.setData(l.toArray());
-		} catch (Exception e) {
-			System.out.println("Error: " + e.getMessage());
-		}
-	}
-
-	private	void printImageStats() {
-		int average = 0, max = 0, min = 256;
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				if (canvas.data[i][j] > max) {
-					max = canvas.data[i][j];
-				}
-				if (canvas.data[i][j] < min) {
-					min = canvas.data[i][j];
-				}
-
-				average += canvas.data[i][j];
-			}
-		}
-		average /= (128 * 128);
-
-		System.out.println("Current Image Statistics:");
-		System.out.println("Average: " + average);
-		System.out.println("Maximum: " + max);
-		System.out.println("Minimum: " + min);
-	}
-
-	private void fixImageColor(boolean print) {
-		int max = 0;
-		for (int i = 0; i < 128; i++) {
-			for (int j = 0; j < 128; j++) {
-				if (canvas.data[i][j] > max) {
-					max = canvas.data[i][j];
-				}
-			}
-		}
-		if (max < 255) {
-			double f = (double)255 / (double)max;
-			for (int i = 0; i < 128; i++) {
-				for (int j = 0; j < 128; j++) {
-					canvas.data[i][j] *= f;
-					if (canvas.data[i][j] > 255) {
-						canvas.data[i][j] = 255;
-					}
-				}
-			}
-			canvas.repaint();
-			if (print) System.out.printf("Image fixed. Factor: %.2f\n", f);
-		}
-	}
-
-	public void keyPressed(KeyEvent e) {}
-	public void keyReleased(KeyEvent e) {}
-
-	public void mouseClicked(MouseEvent e) {
-		if (e.getSource().equals(canvas)) {
-			if (e.getClickCount() == 2) {
-				if (canvasWin == null) {
-					canvasWin = new CanvasWindow(this);
-					canvas.setToRefresh(canvasWin.getCanvas());
-					canvasWin.getCanvas().setData(canvas.data);
-				}
-			}
-		}
-	}
-
-	public void mousePressed(MouseEvent e) {}
-	public void mouseReleased(MouseEvent e) {}
-	public void mouseEntered(MouseEvent e) {}
-	public void mouseExited(MouseEvent e) {}
-
-	public void componentResized(ComponentEvent e) {
-		getContentPane().remove(distanceWin);
-		distanceWin = null;
-
-		width = getWidth();
-		height = getHeight();
-
-		distanceWin = new DistanceWindow(this, 80);
-		distanceWin.setBounds(512, 0, distanceWin.width, height);
-		getContentPane().add(distanceWin);
-
-		repaint();
-	}
-
-	public void componentHidden(ComponentEvent e) {}
-	public void componentMoved(ComponentEvent e) {}
-	public void componentShown(ComponentEvent e) {}
 }
 
+// Close serial connection on shutdown
 class ShutdownThread implements Runnable {
 	private Remote remote = null;
 
