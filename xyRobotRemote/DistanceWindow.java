@@ -30,9 +30,10 @@ class DistanceWindow extends JPanel {
 	private JLabel[] l = null;
 	private int max = 0;
 
-	public static final int width = 150;
+	public static int width = 100;
 	public static int height;
 	public final int titlebar = 20;
+	public int value = 0;
 
 	private int lights = 20;
 
@@ -68,6 +69,7 @@ class DistanceWindow extends JPanel {
 	}
 
 	public void setVal(int val) {
+		value = val;
 		int step = max / lights;
 		int height = val / step;
 		for (int i = 0; i < lights; i++) {

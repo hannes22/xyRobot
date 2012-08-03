@@ -31,12 +31,14 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 												ComponentListener {
 
 	private final String version = "0.9";
-	public int width = 512 + DistanceWindow.width;
-	public int height = 466;
+	public int width = 485 + DistanceWindow.width;
+	public int height = 420;
 	public final int xOff = 0;
 	public final int yOff = 0;
 
 	private PaintCanvas canvas = null;
+
+	private JPanel bigPanel = null;
 
 	private JPanel serialStuff = null;
 	private JComboBox portSelector = null;
@@ -97,42 +99,56 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		Container c = getContentPane();
 
 		distanceWin = new DistanceWindow(this, 80);
-		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		distanceWin.setBounds(0, 0, distanceWin.width, height);
+		distanceWin.setVal(80);
 		c.add(distanceWin);
 
+		bigPanel = new JPanel();
+		bigPanel.setBounds(distanceWin.width, 0, width - distanceWin.width, height);
+		bigPanel.addKeyListener(this);
+		bigPanel.setLayout(new FlowLayout());
+		c.add(bigPanel);
+
 		canvas = new PaintCanvas(128, 128, 2);
-		canvas.setBounds(10, 10, 256, 256);
+		// canvas.setBounds(10, 10, 256, 256);
+		canvas.setPreferredSize(new Dimension(256, 256));
 		canvas.setBorder(BorderFactory.createLoweredBevelBorder());
 		canvas.addMouseListener(this);
 		canvas.addKeyListener(this);
-		c.add(canvas);
-
-		status = new JLabel("<html>Initializing xyRobotRemote...");
-		status.setBounds(10, 275, 256, 50);
-		status.addKeyListener(this);
-		status.setBorder(BorderFactory.createLoweredBevelBorder());
-		c.add(status);
-
-		serialStuff = new JPanel();
-		serialStuff.setBorder(BorderFactory.createTitledBorder("Serial"));
-		serialStuff.setBounds(275, 5, 215, 95);
-		serialStuff.setLayout(null);
-		serialStuff.addKeyListener(this);
-		c.add(serialStuff);
+		bigPanel.add(canvas);
 
 		cameraStuff = new JPanel();
 		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
-		cameraStuff.setBounds(275, 105, 215, 225);
+		// cameraStuff.setBounds(275, 105, 215, 225);
+		cameraStuff.setPreferredSize(new Dimension(215, 225));
 		cameraStuff.setLayout(null);
 		cameraStuff.addKeyListener(this);
-		c.add(cameraStuff);
+		bigPanel.add(cameraStuff);
+
+		serialStuff = new JPanel();
+		serialStuff.setBorder(BorderFactory.createTitledBorder("Serial"));
+		// serialStuff.setBounds(275, 5, 215, 95);
+		serialStuff.setPreferredSize(new Dimension(215, 95));
+		serialStuff.setLayout(null);
+		serialStuff.addKeyListener(this);
+		bigPanel.add(serialStuff);
 
 		driveStuff = new JPanel();
 		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
-		driveStuff.setBounds(275, 330, 215, 100);
+		// driveStuff.setBounds(275, 330, 215, 100);
+		driveStuff.setPreferredSize(new Dimension(215, 100));
 		driveStuff.setLayout(null);
 		driveStuff.addKeyListener(this);
-		c.add(driveStuff);
+		bigPanel.add(driveStuff);
+
+		status = new JLabel("<html>Initializing xyRobotRemote...");
+		// status.setBounds(10, 275, 256, 50);
+		// status.setSize(new Dimension(256, 50));
+		status.addKeyListener(this);
+		status.setBorder(BorderFactory.createLoweredBevelBorder());
+		bigPanel.add(status);
+
+		// --------------------------------
 
 		String[] ports = HelperUtility.getPorts();
 		if ((ports == null) || (ports.length == 0)) {
@@ -470,6 +486,10 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 			case 'd':
 				fixImageColor(true);
 				break;
+
+			case 'w':
+				System.out.println(getWidth() + "x" + getHeight());
+				break;
 		}
 	}
 	public void keyPressed(KeyEvent e) {}
@@ -492,15 +512,17 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	public void mouseExited(MouseEvent e) {}
 
 	public void componentResized(ComponentEvent e) {
-		getContentPane().remove(distanceWin);
-		distanceWin = null;
-
 		width = getWidth();
 		height = getHeight();
 
-		distanceWin = new DistanceWindow(this, 80);
-		distanceWin.setBounds(512, 0, distanceWin.width, height);
+		DistanceWindow dW = new DistanceWindow(this, 80);
+		dW.setVal(distanceWin.value);
+		getContentPane().remove(distanceWin);
+		distanceWin = dW;
+		distanceWin.setBounds(0, 0, distanceWin.width, height);
 		getContentPane().add(distanceWin);
+
+		bigPanel.setBounds(distanceWin.width, 0, width - distanceWin.width, height);
 
 		repaint();
 	}
