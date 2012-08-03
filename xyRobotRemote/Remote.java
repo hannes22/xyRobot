@@ -39,7 +39,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	private PaintCanvas canvas = null;
 
 	private JPanel serialStuff = null;
-	private JComboBox<String> portSelector = null;
+	private JComboBox portSelector = null;
 	private JButton openPort = null;
 	private JButton closePort = null;
 
@@ -149,7 +149,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 				ports[i] = tmp;
 			}
 		}
-		portSelector = new JComboBox<String>(ports);
+		portSelector = new JComboBox(ports);
 		portSelector.setBounds(5, 20, 205, 30);
 		portSelector.addKeyListener(this);
 		serialStuff.add(portSelector);

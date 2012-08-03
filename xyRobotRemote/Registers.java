@@ -31,7 +31,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JPanel stuff = null;
 	private JLabel NName = null;
 	private JCheckBox N = null;
-	private JComboBox<String> VH = null;
+	private JComboBox VH = null;
 	private String VHs[] = { "No edge mode", "Horizontal edge", "Vertical edge", "2D edge" };
 	private JLabel EName = null;
 	private JLabel EVal = null;
@@ -40,7 +40,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 	private JLabel EMode2 = null;
 	private JCheckBox Extraction = null;
 	private JCheckBox Enhancement = null;
-	private JComboBox<String> Z = null;
+	private JComboBox Z = null;
 	private String Zs[] = { "No Calibration", "Positive", "Negative" };
 	private JLabel IName = null;
 	private JCheckBox I = null;
@@ -213,7 +213,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		N = new JCheckBox();
 		stuff.add(N);
 
-		VH = new JComboBox<String>(VHs);
+		VH = new JComboBox(VHs);
 		stuff.add(VH);
 
 		EName = new JLabel();
@@ -247,7 +247,7 @@ class Registers extends JDialog implements ActionListener, ChangeListener, ItemL
 		Enhancement.setSelected(true);
 		stuff.add(Enhancement);
 
-		Z = new JComboBox<String>(Zs);
+		Z = new JComboBox(Zs);
 		stuff.add(Z);
 
 		IName = new JLabel();
