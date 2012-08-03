@@ -39,12 +39,11 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	private PaintCanvas canvas = null;
 
 	private JPanel serialStuff = null;
-	private JComboBox portSelector = null;
+	private JComboBox<String> portSelector = null;
 	private JButton openPort = null;
 	private JButton closePort = null;
 
-	private JTextArea status = null;
-	private JScrollPane statusScroll = null;
+	private JLabel status = null;
 
 	private JPanel cameraStuff = null;
 	private JButton trigger = null;
@@ -108,14 +107,11 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		canvas.addKeyListener(this);
 		c.add(canvas);
 
-		status = new JTextArea("Initializing xyRobotRemote...");
-		status.setBounds(10, 275, 256, 150);
-		status.setEditable(false);
-		statusScroll = new JScrollPane(status);
-		statusScroll.setBorder(BorderFactory.createLoweredBevelBorder());
-		statusScroll.setBounds(10, 275, 256, 150);
-		statusScroll.addKeyListener(this);
-		c.add(statusScroll);
+		status = new JLabel("<html>Initializing xyRobotRemote...");
+		status.setBounds(10, 275, 256, 50);
+		status.addKeyListener(this);
+		status.setBorder(BorderFactory.createLoweredBevelBorder());
+		c.add(status);
 
 		serialStuff = new JPanel();
 		serialStuff.setBorder(BorderFactory.createTitledBorder("Serial"));
@@ -123,6 +119,20 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		serialStuff.setLayout(null);
 		serialStuff.addKeyListener(this);
 		c.add(serialStuff);
+
+		cameraStuff = new JPanel();
+		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
+		cameraStuff.setBounds(275, 105, 215, 225);
+		cameraStuff.setLayout(null);
+		cameraStuff.addKeyListener(this);
+		c.add(cameraStuff);
+
+		driveStuff = new JPanel();
+		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
+		driveStuff.setBounds(275, 330, 215, 100);
+		driveStuff.setLayout(null);
+		driveStuff.addKeyListener(this);
+		c.add(driveStuff);
 
 		String[] ports = HelperUtility.getPorts();
 		if ((ports == null) || (ports.length == 0)) {
@@ -139,7 +149,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 				ports[i] = tmp;
 			}
 		}
-		portSelector = new JComboBox(ports);
+		portSelector = new JComboBox<String>(ports);
 		portSelector.setBounds(5, 20, 205, 30);
 		portSelector.addKeyListener(this);
 		serialStuff.add(portSelector);
@@ -157,13 +167,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		closePort.addActionListener(this);
 		closePort.addKeyListener(this);
 		serialStuff.add(closePort);
-
-		cameraStuff = new JPanel();
-		cameraStuff.setBorder(BorderFactory.createTitledBorder("Camera"));
-		cameraStuff.setBounds(275, 105, 215, 225);
-		cameraStuff.setLayout(null);
-		cameraStuff.addKeyListener(this);
-		c.add(cameraStuff);
 
 		trigger = new JButton();
 		trigger.setText("Shoot Pic");
@@ -221,13 +224,6 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		camMoveX.setPaintTicks(true);
 		camMoveX.addKeyListener(this);
 		cameraStuff.add(camMoveX);
-
-		driveStuff = new JPanel();
-		driveStuff.setBorder(BorderFactory.createTitledBorder("Drive"));
-		driveStuff.setBounds(275, 330, 215, 100);
-		driveStuff.setLayout(null);
-		driveStuff.addKeyListener(this);
-		c.add(driveStuff);
 
 		dist = new JTextField();
 		dist.setText("100");
@@ -336,8 +332,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	}
 
 	public void log(String log) {
-		status.append("\n" + log);
-		status.setCaretPosition(status.getDocument().getLength());
+		status.setText("<html>" + log);
 	}
 
 	private void readFile(String f) {

@@ -1,4 +1,5 @@
 INJAR = *.class splash.png
+CFLAGS = -Xlint:unchecked
 # Path to jni.h
 ifdef SystemRoot
 RM = del
@@ -39,11 +40,8 @@ doc: doc/index.html
 xyRobotRemote.jar: HelperUtility.class manifest.txt libSerial
 	jar -cmf manifest.txt "xyRobotRemote$(PLATFORM).jar" $(INJAR)
 
-serialInterface.h: HelperUtility.class
-	javah -o serialInterface.h HelperUtility
-
 HelperUtility.class: $(JAVAFILES)
-	javac -g $(JAVAFILES)
+	javac $(CFLAGS) -g $(JAVAFILES)
 
 doc/index.html: $(JAVAFILES)
 	javadoc -d doc $(JAVAFILES)
