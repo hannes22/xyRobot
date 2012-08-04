@@ -12,7 +12,7 @@ RM = rm -rf
 INJAR += Serial.dll
 PLATFORM = Win
 else
-RM = rm -f
+RM = rm -rf
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
 INJAR += libSerial.jnilib
@@ -30,7 +30,20 @@ JAVAFILES = Remote.java HelperUtility.java SerialCommunicator.java PaintCanvas.j
 
 # --------------------------------------
 
+ifdef SystemRoot
 all: xyRobotRemote.jar
+else ifdef SYSTEMROOT
+all: xyRobotRemote.jar
+else ifeq ($(UNAME),Darwin)
+all: xyRobotRemote.app
+else
+all: xyRobotRemote.jar
+endif
+
+xyRobotRemote.app: xyRobotRemote.jar
+	cp -r bundles/mac.app xyRobotRemote.app
+	cp -r xyRobotRemoteMac.jar xyRobotRemote.app/Contents/Resources/Java/xyRobotRemoteMac.jar
+	make cleanSmall
 
 run: xyRobotRemote.jar
 	java -jar xyRobotRemote$(PLATFORM).jar
@@ -73,7 +86,9 @@ libSerial.so: libSerial/serialHelper.c libSerial/unixSerial.c
 	mv libSerial/libSerial.so libSerial.so
 
 # Delete intermediate files
-clean:
+clean: cleanSmall
+	$(RM) xyRobotRemote.app
+cleanSmall:
 	make -C libSerial clean
 	$(RM) *.class
 	$(RM) *.o
