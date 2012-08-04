@@ -30,7 +30,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 												MouseListener, KeyListener,
 												ComponentListener {
 
-	private final String version = "0.9";
+	private final String version = "0.9.1";
 	public int width = 485 + DistanceWindow.width;
 	public int height = 420;
 	public final int xOff = 0;
@@ -141,7 +141,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		driveStuff.addKeyListener(this);
 		bigPanel.add(driveStuff);
 
-		status = new JLabel("<html>Initializing xyRobotRemote...");
+		status = new JLabel("<html>Initializing xyRobotRemote " + version);
 		// status.setBounds(10, 275, 256, 50);
 		// status.setSize(new Dimension(256, 50));
 		status.addKeyListener(this);
@@ -303,7 +303,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 		// Shutdown Hook to close an opened serial port
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownThread(this), "Serial Closer"));
 
-		log("Rendering Image...");
+		log("Rendering Image");
 		ImageTest t = new ImageTest("splash.png");
 		canvas.setData(t.getData());
 		fixImageColor(false); // Converting color-pics leads to dark images...
@@ -348,7 +348,12 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 	}
 
 	public void log(String log) {
-		status.setText("<html>" + log);
+		String s = status.getText();
+		if (s.length() > 50) {
+			status.setText("<html>" + log);
+		} else {
+			status.setText(s + " -- " + log);
+		}
 	}
 
 	private void readFile(String f) {

@@ -38,13 +38,13 @@ int fd = -1;
 int serialOpen(char *port) {
 	struct termios options;
 
-	if ((strcmp(ttyname(fileno(stdin)), port) == 0) || (strcmp(ttyname(fileno(stdout)), port) == 0)) {
-		return -1;
-	}
-
 	if (fd != -1) {
 		close(fd);
 	}
+
+	// Rough system to debug problems existing only when starting the app with a double-click
+	// system("osascript -e \"tell app \\\"Finder\\\" to display dialog \\\"Opening...\\\"\"");
+
 	fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd == -1) {
 		return -1;

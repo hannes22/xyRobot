@@ -10,4 +10,4 @@ xyRobot is the Framework for my Robot. [Visit my website for more informations](
 
 ## xyRobotRemote
 
-xyRobotRemote is a Java App which communicates with the Robot Firmware over a serial port. It allows you to shoot pictures with the Gameboy camera and remote-control the robot. It requires Java 6!
+xyRobotRemote is a Java App which communicates with the Robot Firmware over a serial port. It allows you to shoot pictures with the Gameboy camera and remote-control the robot. It requires Java 6 and could possibly work with Java 7...
