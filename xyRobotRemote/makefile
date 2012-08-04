@@ -41,7 +41,7 @@ all: xyRobotRemote.jar
 endif
 
 xyRobotRemote.app: xyRobotRemote.jar
-	cp -r bundles/mac.app xyRobotRemote.app
+	cp -r bundles/mac xyRobotRemote.app
 	cp -r xyRobotRemoteMac.jar xyRobotRemote.app/Contents/Resources/Java/xyRobotRemoteMac.jar
 	make cleanSmall
 
