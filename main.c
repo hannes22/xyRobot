@@ -297,16 +297,7 @@ void menuHandler() {
 }
 
 /* Serial commands:
- * '?'						--> Send Version String
- * 0x80, x					--> Move Camera Servo Up/Down to x Degree (from 0 to 180)
- * 0x81, x					--> Move Camera Servo Left/Right to x Degree (from 0 to 180)
- * 0x82, r1 ... r8			--> Sends picture. Camera settings registers are r1 to r8
- * 0x83, dist, speed, dir	--> Drive dist cm with speed speed, dir 1 = Forward, 0 = backward
- * 0x84, degree, dir		--> Turn. Dir 1 = right, 0 = left
- * 0x85, r1 ... r8			--> Send picture, but use only 4bit per pixel!
- * 0x86						--> Get distance
- * 0x87, r1 ... r8			--> Send picture, but use only 2bit per pixel!
- * 0x88, r1 ... r8			--> Send picture, but use only 1bit per pixel!
+ * See Readme.md for the commands used by xyRobotRemote.
  *
  * 'C'...					--> Bluetooth "CONNECT"
  * 'D'...					--> Bluetooth "DISCONNECT"

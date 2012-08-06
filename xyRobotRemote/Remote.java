@@ -30,7 +30,7 @@ public class Remote extends JFrame implements ActionListener, ChangeListener,
 												MouseListener, KeyListener,
 												ComponentListener {
 
-	private final String version = "0.9.1";
+	private final String version = "1.0";
 	public int width = 485 + DistanceWindow.width;
 	public int height = 420;
 	public final int xOff = 0;
