@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <util/delay.h>
+#include <avr/wdt.h>
 
 #include <misc.h>
 #include <twi.h>
@@ -162,6 +163,7 @@ uint16_t lcdGetNum(void) {
 	uint8_t i = 0;
 	uint16_t ret = 0;
 	while (fin == 0) {
+		wdt_reset();
 		wert = lcdGetChar();
 		if (wert != 0) {
 			if ( (wert != '*') && (wert != '#') ) {

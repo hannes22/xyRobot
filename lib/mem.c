@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <mem.h>
 
-#include <util/delay.h>
+#include <avr/wdt.h>
 
 void memInit() {
 	DDRC = 0xFF; // PC Output
@@ -95,6 +95,7 @@ uint8_t memCalcErrorRate(void) {
 	uint32_t i, val;
 
 	for (i = 0; i < MEMSIZE; i++) {
+		wdt_reset();
 		val = i % 256;
 		memSet(i, val);
 	}
@@ -106,6 +107,7 @@ uint8_t memCheckErrorRateAgain(void) {
 	uint32_t i, val, errors = 0, calc;
 
 	for (i = 0; i < MEMSIZE; i++) {
+		wdt_reset();
 		val = i % 256;
 		if (memGet(i) != val) {
 			errors++;

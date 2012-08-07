@@ -216,6 +216,7 @@ void camWait(void) {
 	while ((CAMPIN & (1 << CAMREAD)) == 0) {
 		setClock(1);
 		setClock(0);
+		wdt_reset();
 	}
 }
 
