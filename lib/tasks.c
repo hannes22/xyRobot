@@ -29,7 +29,7 @@
 #include <misc.h>
 
 #define FULLTASKMAX 5
-#define TIMEDTASKMAX 1
+#define TIMEDTASKMAX 2
 
 // For real task scheduling...:
 void (*tasks[FULLTASKMAX])(void); // Function pointer array
@@ -153,8 +153,6 @@ void runTasks(void) {
 	uint8_t currentFullTask = 0;
 	uint8_t i;
 	while (1) {
-		wdt_reset();
-
 		// Were some timed tasks marked for execution?
 		for (i = 0; i < TIMEDTASKMAX; i++) {
 			if (timedTasks[i] != NULL) {

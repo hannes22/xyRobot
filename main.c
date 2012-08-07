@@ -41,7 +41,7 @@
 // Remember: Strings to the lcd should not end with \n
 // Timer 0 (8 bit): Servo PWM
 // Timer 1 (16bit): Motor Speed PWM
-// Timer 2 (8 bit): System Time (Currently unused)
+// Timer 2 (8 bit): System Time
 // Timer 3 (16bit): Unused
 // Timer 4 (16bit): Unused
 // Timer 5 (16bit): Unused
@@ -50,12 +50,16 @@
 // LED 2 is heartbeat task
 
 char buffer[BUFFERSIZE]; // Used as global string buffer
-char versionString[] PROGMEM = "xyRobot 1.0\n";
+char versionString[] PROGMEM = "xyRobot 0.9\n";
 uint8_t upDownPos = MIDDLE;
 uint8_t leftRightPos = CENTER;
 
 void heartbeat(void) {
 	ledToggle(2);
+}
+
+void watchdog(void) {
+	wdt_reset();
 }
 
 int main(void) {
@@ -84,6 +88,7 @@ int main(void) {
 	addFullTimeTask(&menuHandler, "LCD Menu");
 	addFullTimeTask(&remoteHandler, "Remote");
 	addTimedTask(&heartbeat, 4); // Executed every 4*128ms=512ms
+	addTimedTask(&watchdog, 12); // Executed every 1536ms, reset after 2000...
 	runTasks();
 
 	return 0;
