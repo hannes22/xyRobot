@@ -39,6 +39,7 @@ uint16_t lcdGetNum(void);
 // Uses buffer[] as return value.
 char *byteToString(uint8_t byte);
 char *bytesToString(uint16_t bytes);
+char *timeToString(uint64_t time);
 char *byteToHex(uint8_t byte);
 
 #endif /* MISC_H_ */

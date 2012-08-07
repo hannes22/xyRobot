@@ -25,14 +25,96 @@
 
 #include <tasks.h>
 #include <time.h>
+#include <serial.h>
+#include <misc.h>
 
-#define FULLTIMETASKMAX 2
+#define FULLTASKMAX 5
 #define TIMEDTASKMAX 1
 
-void (*tasks[FULLTIMETASKMAX])(void); // Function pointer array
+// For real task scheduling...:
+void (*tasks[FULLTASKMAX])(void); // Function pointer array
 void (*timedTasks[TIMEDTASKMAX])(void);
 uint16_t intervalls[TIMEDTASKMAX];
 uint8_t shouldExecute[TIMEDTASKMAX];
+
+// For statistics
+time_t startTime;
+char *taskNames[FULLTASKMAX];
+time_t lastStartTimeFullTask[FULLTASKMAX];
+time_t absoluteRunTimeFullTask[FULLTASKMAX];
+
+void timer(void);
+
+inline uint8_t countFullTasks(void) {
+	uint8_t size = 0;
+	while (1) {
+		if (size < FULLTASKMAX) {
+			if (tasks[size] != NULL) {
+				size++;
+			} else {
+				return size;
+			}
+		} else {
+			return FULLTASKMAX;
+		}
+	}
+	return size;
+}
+
+void sendStatistics(void) {
+	time_t currentTime = getSystemTime();
+	time_t elapsedTime = currentTime - startTime;
+	time_t tmp, sum = 0;
+	uint8_t fullTasks = countFullTasks();
+	uint8_t i, percent = 0;
+
+	serialWriteString("Runtime: ");
+	serialWriteString(timeToString(elapsedTime));
+	serialWriteString("ms\n");
+
+	for (i = 0; i < fullTasks; i++) {
+		serialWriteString("Task ");
+		serialWriteString(byteToString(i + 1));
+		if (taskNames[i] != NULL) {
+			serialWriteString(" (");
+			serialWriteString(taskNames[i]);
+			serialWrite(')');
+		}
+		serialWriteString(": ");
+		serialWriteString(timeToString(absoluteRunTimeFullTask[i]));
+		sum += absoluteRunTimeFullTask[i];
+		serialWriteString("ms (");
+		tmp = absoluteRunTimeFullTask[i] * 100;
+		tmp /= elapsedTime;
+		percent += (uint8_t)tmp;
+		serialWriteString(timeToString(tmp));
+		serialWriteString("%)\n");
+	}
+	serialWriteString("Scheduling and Interrupts: ");
+	serialWriteString(timeToString(elapsedTime - sum));
+	serialWriteString("ms (");
+	tmp = (elapsedTime - sum) * 100;
+	tmp /= elapsedTime;
+	serialWriteString(timeToString(tmp));
+	serialWriteString("%)\n\n");
+}
+
+void initTasks(void) {
+	uint8_t i;
+	for (i = 0; i < FULLTASKMAX; i++) {
+		tasks[i] = NULL;
+		lastStartTimeFullTask[i] = 0;
+		absoluteRunTimeFullTask[i] = 0;
+		taskNames[i] = 0;
+	}
+	for (i = 0; i < TIMEDTASKMAX; i++) {
+		timedTasks[i] = NULL;
+		intervalls[i] = 0;
+		shouldExecute[i] = 0;
+	}
+	startTime = getSystemTime();
+	setTimedCall(&timer, 7); // timer is called every 128ms
+}
 
 void timer(void) {
 	uint8_t i;
@@ -45,24 +127,12 @@ void timer(void) {
 	}
 }
 
-void initTasks(void) {
-	uint8_t i;
-	for (i = 0; i < FULLTIMETASKMAX; i++) {
-		tasks[i] = NULL;
-	}
-	for (i = 0; i < TIMEDTASKMAX; i++) {
-		timedTasks[i] = NULL;
-		intervalls[i] = 0;
-		shouldExecute[i] = 0;
-	}
-	setTimedCall(&timer, 7); // timer is called every 128ms
-}
-
-void addFullTimeTask(void (*newTask)(void)) {
+void addFullTimeTask(void (*newTask)(void), char *name) {
 	uint8_t i = 0;
-	for (i = 0; i < FULLTIMETASKMAX; i++) {
+	for (i = 0; i < FULLTASKMAX; i++) {
 		if (tasks[i] == NULL) {
 			tasks[i] = newTask;
+			taskNames[i] = name;
 			break;
 		}
 	}
@@ -99,11 +169,13 @@ void runTasks(void) {
 
 		// Execute next full-time task
 		if (tasks[currentFullTask] != NULL) {
+			lastStartTimeFullTask[currentFullTask] = getSystemTime();
 			(*tasks[currentFullTask])();
+			absoluteRunTimeFullTask[currentFullTask] += (getSystemTime() - lastStartTimeFullTask[currentFullTask]);
 		}
 
 		// Determine next full task
-		if (currentFullTask < (FULLTIMETASKMAX - 1)) {
+		if (currentFullTask < (FULLTASKMAX - 1)) {
 			currentFullTask++;
 			if (tasks[currentFullTask] == NULL) {
 				currentFullTask = 0;

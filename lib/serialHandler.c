@@ -22,11 +22,14 @@
 /* Serial commands:
  * See Readme.md for the commands used by xyRobotRemote.
  *
- * 'C'...					--> Bluetooth "CONNECT"
- * 'D'...					--> Bluetooth "DISCONNECT"
- * 'O'...					--> Bluetooth "OK"
- * 'E'...					--> Bluetooth "ERROR"
- * 'R'...					--> Read until '\n' then reset (comfortable bootloader usage)
+ * 'C'...'\n' --> Bluetooth "CONNECT"
+ * 'D'...'\n' --> Bluetooth "DISCONNECT"
+ * 'O'...'\n' --> Bluetooth "OK"
+ * 'E'...'\n' --> Bluetooth "ERROR"
+ * 'R'...'\n' --> Read until '\n' then reset (comfortable bootloader usage)
+ *
+ * Debugging:
+ * 's'        --> Send Task Scheduler Statistics
  */
 #include <avr/io.h>
 #include <avr/wdt.h>
@@ -37,6 +40,7 @@
 #include <serial.h>
 #include <motor.h>
 #include <cam.h>
+#include <tasks.h>
 
 uint8_t bluetoothConnected = 0;
 char bluetoothPartner[15];
@@ -55,6 +59,10 @@ void remoteHandler() {
 	if (serialHasChar()) {
 		c = serialGet();
 		switch(c) {
+		case 's':
+			sendStatistics();
+			break;
+
 		case 'C':
 			readBluetoothPartner();
 			bluetoothConnected = 1;

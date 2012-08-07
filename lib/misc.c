@@ -196,6 +196,10 @@ char *bytesToString(uint16_t bytes) {
 	return utoa(bytes, buffer, 10);
 }
 
+char *timeToString(time_t time) {
+	return ultoa(time, buffer, 10);
+}
+
 char *byteToHex(uint8_t byte) {
 	return utoa(byte, buffer, 16);
 }

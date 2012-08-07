@@ -81,12 +81,9 @@ int main(void) {
 	wdt_enable(WDTO_2S); // Watchdog reset after 2s.
 
 	initTasks();
-
-	addFullTimeTask(&menuHandler);
-	addFullTimeTask(&remoteHandler);
-
+	addFullTimeTask(&menuHandler, "LCD Menu");
+	addFullTimeTask(&remoteHandler, "Remote");
 	addTimedTask(&heartbeat, 4); // Executed every 4*128ms=512ms
-
 	runTasks();
 
 	return 0;

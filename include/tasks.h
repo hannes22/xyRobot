@@ -23,12 +23,14 @@
 #define tasks_h_
 
 void initTasks(void);
-void addFullTimeTask(void (*newTask)(void));
+void addFullTimeTask(void (*newTask)(void), char *name);
 
 // Executed every intervall*128ms
 // intervall=4 --> Executed every 512ms
 void addTimedTask(void (*newTask)(void), uint16_t intervall);
 
 void runTasks(void);
+
+void sendStatistics(void);
 
 #endif
