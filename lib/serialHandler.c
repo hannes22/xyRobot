@@ -91,6 +91,7 @@ void remoteHandler() {
 			} else {
 				upDownPos = MIDDLE;
 			}
+			rotateUpDown(upDownPos);
 			break;
 
 		case 0x81:
@@ -100,6 +101,7 @@ void remoteHandler() {
 			} else {
 				leftRightPos = CENTER;
 			}
+			rotateLeftRight(leftRightPos);
 			break;
 
 		case 0x82:

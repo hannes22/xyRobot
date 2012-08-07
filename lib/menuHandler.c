@@ -199,31 +199,39 @@ void menuHandler() {
 			printMenu(menu);
 		} else if (c == '1') {
 			leftRightPos = lcdGetNum();
+			rotateLeftRight(leftRightPos);
 		} else if (c == '3') {
 			upDownPos = lcdGetNum();
+			rotateUpDown(upDownPos);
 		} else if (c == '2') {
 			// Up
 			if (upDownPos <= (180 - SERVOSTEPWIDTH)) {
 				upDownPos += SERVOSTEPWIDTH;
+				rotateUpDown(upDownPos);
 			}
 		} else if (c == '8') {
 			// Down
 			if (upDownPos >= SERVOSTEPWIDTH) {
 				upDownPos -= SERVOSTEPWIDTH;
+				rotateUpDown(upDownPos);
 			}
 		} else if (c == '4') {
 			// Left
 			if (leftRightPos >= SERVOSTEPWIDTH) {
 				leftRightPos -= SERVOSTEPWIDTH;
+				rotateLeftRight(leftRightPos);
 			}
 		} else if (c == '6') {
 			// Right
 			if (leftRightPos <= (180 - SERVOSTEPWIDTH)) {
 				leftRightPos += SERVOSTEPWIDTH;
+				rotateLeftRight(leftRightPos);
 			}
 		} else if (c == '5') {
 			leftRightPos = CENTER;
 			upDownPos = MIDDLE;
+			rotateLeftRight(leftRightPos);
+			rotateUpDown(upDownPos);
 		}
 	} else if (menu == MENU_RAM) {
 		// Ram

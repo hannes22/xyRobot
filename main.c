@@ -36,6 +36,7 @@
 #include <mem.h>
 #include <serialHandler.h>
 #include <menuHandler.h>
+#include <tasks.h>
 
 // Remember: Strings to the lcd should not end with \n
 // Timer 0 (8 bit): Servo PWM
@@ -53,13 +54,17 @@ char versionString[] PROGMEM = "xyRobot 1.0\n";
 uint8_t upDownPos = MIDDLE;
 uint8_t leftRightPos = CENTER;
 
+void resetWatchdog(void) {
+	wdt_reset();
+}
+
 int main(void) {
 
 	MCUSR = 0;
 	wdt_disable();
 
 	ledInit();
-	ledToggle(2);
+	ledToggle(2); // LED on
 	driveInit();
 	twiInit();
 	lcdInit();
@@ -68,20 +73,18 @@ int main(void) {
 	camInit();
 	memInit();
 	initSystemTimer();
-	sei();
+
+	sei(); // Enable interrupts
+
 	menuInit();
-	ledToggle(2);
+	ledToggle(2); // LED off
+	wdt_enable(WDTO_2S); // Watchdog reset after 2s.
 
-	wdt_enable(WDTO_2S);
+	initTasks();
+	addTask(&resetWatchdog);
+	addTask(&menuHandler);
+	addTask(&remoteHandler);
+	runTasks();
 
-	while(1) {
-		menuHandler();
-		remoteHandler();
-
-		rotateUpDown(upDownPos);
-		rotateLeftRight(leftRightPos);
-
-		wdt_reset();
-	}
 	return 0;
 }

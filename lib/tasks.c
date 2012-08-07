@@ -1,5 +1,5 @@
 /*
- * time.h
+ * tasks.c
  *
  * Copyright 2011 Thomas Buck <xythobuz@me.com>
  *
@@ -18,15 +18,42 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <avr/io.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-#ifndef time_h_
-#define time_h_
+#include <tasks.h>
 
-typedef uint64_t time_t;
+#define tasksLength 3
+void (*tasks[tasksLength])(void); // Function pointer array
 
-void initSystemTimer(void);
-time_t getSystemTime(void);
-time_t getSystemTimeSeconds(void);
-time_t diffTime(time_t a, time_t b);
+void initTasks(void) {
+	uint8_t i;
+	for (i = 0; i < tasksLength; i++) {
+		tasks[i] = NULL;
+	}
+}
 
-#endif
+void addTask(void (*newTask)(void)) {
+	uint8_t i = 0;
+	for (i = 0; i < tasksLength; i++) {
+		if (tasks[i] == NULL) {
+			tasks[i] = newTask;
+			break;
+		}
+	}
+}
+
+void runTasks(void) {
+	uint8_t currentTask = 0;
+	while (1) {
+		if (tasks[currentTask] != NULL) {
+			(*tasks[currentTask])();
+		}
+		if (currentTask < (tasksLength - 1)) {
+			currentTask++;
+		} else {
+			currentTask = 0;
+		}
+	}
+}

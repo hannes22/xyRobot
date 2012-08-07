@@ -18,8 +18,12 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef serialHandler_h_
+#define serialHandler_h_
 
 extern uint8_t bluetoothConnected;
 extern char bluetoothPartner[15];
 
 void remoteHandler(void);
+
+#endif

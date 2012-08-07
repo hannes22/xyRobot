@@ -46,6 +46,7 @@ SRC += lib/time.c
 SRC += lib/mem.c
 SRC += lib/serialHandler.c
 SRC += lib/menuHandler.c
+SRC += lib/tasks.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s

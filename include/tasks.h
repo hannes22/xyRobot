@@ -1,7 +1,7 @@
 /*
- * menuHandler.h
+ * tasks.h
  *
- * Copyright 2012 Thomas Buck <xythobuz@me.com>
+ * Copyright 2011 Thomas Buck <xythobuz@me.com>
  *
  * This file is part of xyRobot.
  *
@@ -18,10 +18,12 @@
  * You should have received a copy of the GNU General Public License
  * along with xyRobot.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef menuHandler_h_
-#define menuHandler_h_
 
-void menuInit(void);
-void menuHandler(void);
+#ifndef tasks_h_
+#define tasks_h_
+
+void initTasks(void);
+void addTask(void (*newTask)(void));
+void runTasks(void);
 
 #endif
