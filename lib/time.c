@@ -32,6 +32,8 @@
 // => 1 Interrupt per millisecond
 
 volatile time_t systemTime = 0; // Overflows in 500 million years... :)
+void (*callback)(void) = NULL;
+uint16_t callbackIntervall = 0;
 
 void initSystemTimer() {
 	TCCR2A |= (1 << WGM21); // CTC Mode
@@ -42,6 +44,16 @@ void initSystemTimer() {
 
 ISR(TIMER2_COMPA_vect) {
 	systemTime++;
+	if ((callback != NULL) && ((getSystemTime() & ((1 << callbackIntervall) - 1)) == 0)) {
+		(*callback)();
+	}
+}
+
+void setTimedCall(void (*func)(void), uint16_t intervall) {
+	if (intervall > 1) {
+		callback = func;
+		callbackIntervall = intervall;
+	}
 }
 
 time_t getSystemTime(void) {

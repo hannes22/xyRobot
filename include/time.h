@@ -28,5 +28,7 @@ void initSystemTimer(void);
 time_t getSystemTime(void);
 time_t getSystemTimeSeconds(void);
 time_t diffTime(time_t a, time_t b);
+void setTimedCall(void (*func)(void), uint16_t intervall);
+// Call Intervall in ms = 2^intervall
 
 #endif

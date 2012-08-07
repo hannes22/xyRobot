@@ -47,15 +47,15 @@
 // Timer 5 (16bit): Unused
 
 // LED 0 & 1 used as motor display.
-// LED 2 should be free...
+// LED 2 is heartbeat task
 
 char buffer[BUFFERSIZE]; // Used as global string buffer
 char versionString[] PROGMEM = "xyRobot 1.0\n";
 uint8_t upDownPos = MIDDLE;
 uint8_t leftRightPos = CENTER;
 
-void resetWatchdog(void) {
-	wdt_reset();
+void heartbeat(void) {
+	ledToggle(2);
 }
 
 int main(void) {
@@ -81,9 +81,12 @@ int main(void) {
 	wdt_enable(WDTO_2S); // Watchdog reset after 2s.
 
 	initTasks();
-	addTask(&resetWatchdog);
-	addTask(&menuHandler);
-	addTask(&remoteHandler);
+
+	addFullTimeTask(&menuHandler);
+	addFullTimeTask(&remoteHandler);
+
+	addTimedTask(&heartbeat, 4); // Executed every 4*128ms=512ms
+
 	runTasks();
 
 	return 0;
