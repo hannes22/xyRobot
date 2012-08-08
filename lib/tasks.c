@@ -29,8 +29,8 @@
 #include <serial.h>
 #include <misc.h>
 
-#define FULLTASKMAX 5
-#define TIMEDTASKMAX 2
+#define FULLTASKMAX 3
+#define TIMEDTASKMAX 3
 
 // For real task scheduling...:
 void (*tasks[FULLTASKMAX])(void); // Function pointer array
@@ -120,88 +120,78 @@ void runTasks(void) {
 	}
 }
 
-void sort(uint8_t **percent, uint8_t size) {
-	uint8_t i, j, *t;
+// ----------------- Statistics -----------------
 
-	if (size <= 1) {
-		return;
+/*
+ * Returned data structure: data[fullTasksRegistered]
+ * data[x][0]      : Process id
+ * data[x][1]      : CPU Time in percent
+ *
+ * data == NULL on error, eg. not enough memory
+ *
+ * free(data) after usage!
+ */
+uint8_t **getStatistics(void) {
+	uint8_t **data;
+	uint8_t i, j;
+	time_t percent, time = getSystemTime();
+
+	data = (uint8_t **)malloc(fullTasksRegistered * sizeof(uint8_t *));
+	if (data == NULL) {
+		return NULL;
 	}
-
-	for (i = 0; i < size - 1; i++) {
-		for (j = 0; j < size - i - 1; j++) {
-			if (percent[j][0] > percent[j + 1][0]) {
-				t = percent[j];
-				percent[j] = percent[j + 1];
-				percent[j + 1] = t;
+	for (i = 0; i < fullTasksRegistered; i++) {
+		data[i] = (uint8_t *)malloc(2 * sizeof(uint8_t));
+		if (data[i] == NULL) {
+			for (j = 0; j < i; j++) {
+				free(data[j]);
 			}
+			free(data);
+			return NULL;
 		}
+
+		percent = absoluteRunTimeFullTask[i] * 100;
+		percent = percent / diffTime(time, startTime);
+
+		data[i][0] = i;
+		data[i][1] = percent;
 	}
+
+	return data;
+}
+
+uint8_t sum(uint8_t **data, uint8_t index, uint8_t length) {
+	uint8_t i, s = 0;
+	for (i = 0; i < length; i++) {
+		s += data[i][index];
+	}
+	return s;
 }
 
 void sendStatistics(void) {
-	time_t currentTime = getSystemTime();
-	time_t elapsedTime = currentTime - startTime;
-	time_t tmp;
-	uint8_t i, sum = 0, **percent;
+	uint8_t i;
+	uint8_t **data = getStatistics();
 
-	percent = (uint8_t **)malloc((fullTasksRegistered + 1) * sizeof(uint8_t *));
-	if (percent == NULL) {
-		serialWriteString("Sorry, not enough memory!\n");
-		return;
+	serialWriteString("PID - CPU - Name\n");
+	for (i = 0; i < fullTasksRegistered; i++) {
+		serialWrite(' ');
+		serialWriteString(byteToString(data[i][0]));
+		serialWriteString("  - ");
+		serialWriteString(byteToString(data[i][1]));
+		serialWriteString("% ");
+		if (data[i][1] < 10) {
+			serialWrite(' ');
+		}
+		serialWriteString("- ");
+		serialWriteString(taskNames[data[i][0]]);
+		serialWrite('\n');
 	}
+	serialWriteString(" X  - ");
+	serialWriteString(byteToString(100 - sum(data, 1, fullTasksRegistered)));
+	serialWriteString("% - Timed Tasks\n\n");
 
 	for (i = 0; i < fullTasksRegistered; i++) {
-		percent[i] = (uint8_t *)malloc(2 * sizeof(uint8_t));
-		if (percent[i] == NULL) {
-			serialWriteString("Sorry, not enough memory!\n");
-			for (sum = 0; sum < i; sum++) {
-				free(percent[sum]);
-			}
-			free(percent);
-			return;
-		}
-		tmp = absoluteRunTimeFullTask[i] * 100;
-		tmp /= elapsedTime;
-		percent[i][0] = (uint8_t)tmp;
-		sum += percent[i][0];
-		percent[i][1] = i;
+		free(data[i]);
 	}
-	percent[fullTasksRegistered] = (uint8_t *)malloc(2 * sizeof(uint8_t));
-	if (percent[fullTasksRegistered] == NULL) {
-		serialWriteString("Sorry, not enough memory!\n");
-		for (sum = 0; sum < fullTasksRegistered; sum++) {
-			free(percent[sum]);
-		}
-		free(percent);
-		return;
-	}
-	percent[fullTasksRegistered][1] = FULLTASKMAX;
-	percent[fullTasksRegistered][0] = 100 - sum;
-
-	sort(percent, FULLTASKMAX + 1);
-	
-	serialWriteString("CPU  -  Time  -  Task\n");
-	for (i = 0; i < (fullTasksRegistered + 1); i++) {
-		serialWriteString(byteToString(percent[i][0]));
-		serialWriteString("%  -  ");
-		serialWriteString(timeToString(absoluteRunTimeFullTask[percent[i][1]]));
-		serialWriteString("ms  -  (");
-		if (i < fullTasksRegistered) {
-			serialWriteString(byteToString(percent[i][1] + 1));
-			serialWriteString(") ");
-			if (taskNames[i] != NULL) {
-				serialWriteString(taskNames[i]);
-			} else {
-				serialWriteString("??");
-			}
-		} else {
-			serialWriteString("0) Idle");
-		}
-		serialWriteString("\n");
-	}
-
-	for (i = 0; i < (fullTasksRegistered + 1); i++) {
-		free(percent[i]);
-	}
-	free(percent);
+	free(data);
 }

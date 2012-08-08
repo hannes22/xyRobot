@@ -31,6 +31,16 @@ void addTimedTask(void (*newTask)(void), uint16_t intervall);
 
 void runTasks(void);
 
+/*
+ * Returned data structure: data[fullTasksRegistered]
+ * data[x][0]      : Process id
+ * data[x][1]      : CPU Time in percent
+ *
+ * data == NULL on error, eg. not enough memory
+ *
+ * free(data) after usage!
+ */
+uint8_t **getStatistics(void);
 void sendStatistics(void);
 
 #endif
