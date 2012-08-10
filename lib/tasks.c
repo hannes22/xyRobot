@@ -32,6 +32,23 @@
 #define FULLTASKMAX 3
 #define TIMEDTASKMAX 3
 
+/*
+ * So what's up with this Task-Managing stuff anyways?
+ * In this file, the main infinite loop is implemented.
+ * Different registered tasks are executed one after another.
+ * In between, we can execute scheduled tasks. They can be scheduled
+ * on a time interval of multiples of 128ms.
+ * But why this strange number?
+ * To do this, we have code in every overflow of our system timer.
+ * This happens every millisecond.
+ * This code has to do a really expensive modulo operation to determine if
+ * it is time to execute the task scheduling code. If we only allow time intervalls of
+ * powers of two, we can reduce this modulo to an easy a & (2^x - 1)
+ * which, thanks to binary, is equal to a & ((1 << x) - 1)
+ * Now we don't have to time our events on a time scale smaller than 100ms.
+ * So I have chosen 128ms as next best power of two.
+ */
+
 // For real task scheduling...:
 void (*tasks[FULLTASKMAX])(void); // Function pointer array
 uint8_t fullTasksRegistered = 0;
