@@ -96,7 +96,7 @@ uint8_t memCalcErrorRate(void) {
 
 	for (i = 0; i < MEMSIZE; i++) {
 		wdt_reset();
-		val = i % 256;
+		val = (uint8_t)(i & 0xFF);
 		memSet(i, val);
 	}
 
@@ -108,7 +108,7 @@ uint8_t memCheckErrorRateAgain(void) {
 
 	for (i = 0; i < MEMSIZE; i++) {
 		wdt_reset();
-		val = i % 256;
+		val = (uint8_t)(i & 0xFF);
 		if (memGet(i) != val) {
 			errors++;
 		}
