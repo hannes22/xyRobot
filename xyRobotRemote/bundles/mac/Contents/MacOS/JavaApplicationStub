@@ -1,3 +1,0 @@
-#!/bin/bash
-DIR=$(cd "$(dirname "$0")"; pwd)
-$DIR/JavaApplicationStub2 & # do it in the background, prevent 2. dock icon
